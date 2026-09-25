@@ -2,6 +2,12 @@ import type { PolicyType } from "./policies";
 
 export type WalletState = "ACTIVE" | "EXPIRED" | "INACTIVE" | "COMPLETED";
 
+export interface WalletTextField {
+  id: string;
+  header: string;
+  body: string;
+}
+
 export interface IssuedCard {
   objectId: string;
   classId: string;

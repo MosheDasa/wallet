@@ -3,10 +3,13 @@ import { GoogleAuth, type OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import { config } from "../config";
 import { POLICY_TYPE_DEFINITIONS, type Customer, type Policy, type PolicyType } from "../domain/policies";
-import type { IssuedCard, SavePassResult, WalletState } from "../domain/types";
+import type { IssuedCard, SavePassResult, WalletState, WalletTextField } from "../domain/types";
 
 const WALLET_SCOPE = "https://www.googleapis.com/auth/wallet_object.issuer";
 const WALLET_API = "https://walletobjects.googleapis.com/walletobjects/v1";
+export const WALLET_LOGO_URL = "https://i.ibb.co/rRmZ8swb/yashir-log.png";
+const ACTIVE_CARD_COLOR = "#1769AA";
+const INVALID_CARD_COLOR = "#858B93";
 
 function localized(value: string) {
   return { defaultValue: { language: "he", value } };
@@ -98,10 +101,39 @@ export class WalletService {
     return (await this.walletRequest("PATCH", "/genericObject/" + encodeURIComponent(objectId), patch)).data;
   }
 
-  async addMessage(objectId: string, body: string): Promise<unknown> {
+  async getTextFields(objectId: string): Promise<WalletTextField[]> {
     this.assertObjectId(objectId);
+    const response = await this.walletRequest("GET", "/genericObject/" + encodeURIComponent(objectId));
+    const object = response.data as { textModulesData?: Array<{ id?: string; header?: string; body?: string }> };
+    return (object.textModulesData ?? []).map((field, index) => ({
+      id: field.id || "field_" + index,
+      header: field.header ?? "",
+      body: field.body ?? "",
+    }));
+  }
+
+  async updateTextFields(objectId: string, fields: WalletTextField[]): Promise<unknown> {
+    return this.patchObject(objectId, { textModulesData: fields });
+  }
+
+  async applyLogo(cards: IssuedCard[]): Promise<number> {
+    let updated = 0;
+    for (const card of cards) {
+      await this.patchObject(card.objectId, {
+        logo: this.logoImage(),
+        hexBackgroundColor: card.isMarkedInvalid || card.state !== "ACTIVE" ? INVALID_CARD_COLOR : ACTIVE_CARD_COLOR,
+      });
+      updated += 1;
+    }
+    return updated;
+  }
+
+  async addMessage(objectId: string, header: string, body: string): Promise<unknown> {
+    this.assertObjectId(objectId);
+    // Google Wallet's push-triggering message flow is Add Message + TEXT_AND_NOTIFY.
+    // PATCH is used to edit/remove message data; it is not the documented push trigger.
     const message = {
-      header: "ביטוח ישיר",
+      header,
       body,
       messageType: "TEXT_AND_NOTIFY",
       id: "msg_" + randomUUID().replaceAll("-", ""),
@@ -135,11 +167,27 @@ export class WalletService {
     return this.patchObject(card.objectId, {
       state: "ACTIVE",
       header: localized(card.policyName + " · לא בתוקף"),
+      hexBackgroundColor: INVALID_CARD_COLOR,
       textModulesData: modules,
     });
   }
 
-  async sendCarRenewal(objectId: string): Promise<{ object: unknown; renewalUrl: string }> {
+  async markObjectValid(card: IssuedCard): Promise<unknown> {
+    this.assertObjectId(card.objectId);
+    const objectPath = "/genericObject/" + encodeURIComponent(card.objectId);
+    const current = (await this.walletRequest("GET", objectPath)).data as {
+      textModulesData?: Array<Record<string, unknown>>;
+    };
+    const modules = (current.textModulesData ?? []).filter((module) => module.id !== "policy-status");
+    return this.patchObject(card.objectId, {
+      state: "ACTIVE",
+      header: localized(card.policyName),
+      hexBackgroundColor: ACTIVE_CARD_COLOR,
+      textModulesData: modules,
+    });
+  }
+
+  async sendCarRenewal(objectId: string, header: string): Promise<{ object: unknown; renewalUrl: string }> {
     this.assertObjectId(objectId);
     const objectPatch = {
       linksModuleData: {
@@ -148,7 +196,7 @@ export class WalletService {
     };
     const [object] = await Promise.all([
       this.patchObject(objectId, objectPatch),
-      this.addMessage(objectId, "זמן לחדש את הרכב"),
+      this.addMessage(objectId, header, "זמן לחדש את הרכב"),
     ]);
     return { object, renewalUrl: config.renewalUrl };
   }
@@ -183,6 +231,7 @@ export class WalletService {
       cardTitle: localized("ביטוח ישיר"),
       header: localized(definition.label),
       subheader: localized(card.policyNumber),
+      logo: this.logoImage(),
       hexBackgroundColor: definition.accent,
       state: "ACTIVE" satisfies WalletState,
       groupingInfo: { groupingId, sortIndex },
@@ -191,6 +240,13 @@ export class WalletService {
       ...(card.policyType === "auto"
         ? { linksModuleData: { uris: [{ uri: config.renewalUrl, description: "חידוש ביטוח רכב" }] } }
         : {}),
+    };
+  }
+
+  private logoImage() {
+    return {
+      sourceUri: { uri: WALLET_LOGO_URL },
+      contentDescription: localized("ביטוח ישיר"),
     };
   }
 

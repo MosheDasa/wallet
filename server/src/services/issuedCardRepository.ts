@@ -59,6 +59,15 @@ export class IssuedCardRepository {
     return card;
   }
 
+  async markValid(objectId: string): Promise<IssuedCard | undefined> {
+    const card = this.cards.get(objectId);
+    if (!card) return undefined;
+    card.state = "ACTIVE";
+    card.isMarkedInvalid = false;
+    await this.persist();
+    return card;
+  }
+
   private persist(): Promise<void> {
     this.writeQueue = this.writeQueue.then(async () => {
       await fs.mkdir(path.dirname(this.filePath), { recursive: true });

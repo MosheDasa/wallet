@@ -39,34 +39,25 @@ button, input, textarea { font: inherit; }
 .secondary-step { color: #477698; background: #eaf2f7; }
 .customer-line { display: flex; gap: 9px; margin: -2px 0 12px; color: #85919b; font-size: 10px; }
 .customer-line strong { color: #43586b; font-size: 11px; }
-.policy-list, .wallet-card-list { display: grid; gap: 7px; }
-.policy-row { direction: ltr; display: flex; align-items: center; gap: 10px; min-height: 67px; padding: 9px 10px; border: 1px solid #e9edef; border-radius: 8px; }
-.policy-row.selected { border-color: #e8a18b; background: #fffaf8; }
-.policy-row > .ant-checkbox { flex: 0 0 auto; }
-.policy-row > .ant-tag { margin: 0; flex: 0 0 auto; font-size: 9px; }
-.policy-label { direction: rtl; flex: 1; min-width: 0; padding: 0; border: 0; background: transparent; text-align: right; cursor: pointer; }
-.policy-label strong, .policy-label span, .policy-label small { display: block; }
-.policy-label strong { color: #3a4f62; font-size: 11px; }
-.policy-label span { margin-top: 1px; color: #73818d; font-size: 10px; }
-.policy-label small { margin-top: 2px; color: #9ba4ac; font-size: 9px; }
+.policy-select-control, .existing-card-select { display: grid; gap: 6px; }
+.policy-select-control label, .existing-card-select label { color: #75828d; font-size: 11px; }
+.policy-select-control .ant-select, .existing-card-select .ant-select { width: 100%; }
+.policy-select-option, .wallet-select-option { display: flex; align-items: center; gap: 9px; }
+.policy-select-option { justify-content: space-between; }
+.policy-select-option > span, .wallet-select-option > span { min-width: 0; display: flex; flex: 1; flex-direction: column; }
+.policy-select-option strong, .wallet-select-option strong { overflow: hidden; color: #344a5e; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.policy-select-option small, .wallet-select-option small { overflow: hidden; color: #75828d; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.policy-select-option .ant-tag, .wallet-select-option .ant-tag { margin: 0; flex: 0 0 auto; font-size: 9px; }
+.select-all-option { display: block; padding-block: 2px; color: #1769aa; }
 .panel-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 13px; border-top: 1px solid #eef0f2; }
 .panel-footer .ant-typography { font-size: 10px; }
 .panel-footer .ant-btn { font-size: 11px; }
 .panel-footer .ant-btn .anticon { transform: rotate(180deg); }
 .setup-hint { display: block; margin-top: 9px; font-size: 10px; }
-.wallet-row { width: 100%; min-width: 0; display: flex; align-items: center; gap: 9px; padding: 9px; border: 1px solid #e9edef; border-radius: 8px; background: white; text-align: right; cursor: pointer; }
-.wallet-row.selected { border-color: #94afc3; background: #f8fbfd; }
-.type-mark { width: 31px; height: 31px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 8px; color: white; background: #547b9e; font-size: 13px; font-weight: 700; }
-.type-mark.type-auto { background: #dc7958; }
-.type-mark.type-home { background: #4e9286; }
-.type-mark.type-savings { background: #43886c; }
-.type-mark.type-mortgage { background: #6b79a6; }
-.type-mark.type-health { background: #9170ae; }
-.type-mark.type-life { background: #4f88a2; }
-.wallet-row-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.wallet-row-copy strong { color: #3b4f61; font-size: 11px; }
-.wallet-row-copy small { overflow: hidden; color: #8c98a2; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
-.wallet-row .ant-tag { margin: 0; font-size: 9px; }
+.wallet-select-option { min-height: 36px; margin: -4px -8px; padding: 6px 8px; border-radius: 6px; }
+.wallet-select-option img { display: block; width: 28px; height: 28px; flex: 0 0 auto; object-fit: contain; border-radius: 6px; background: white; }
+.wallet-select-option.active { background: #eaf3ff; }
+.wallet-select-option.invalid { background: #f0f1f2; }
 .card-actions { display: grid; gap: 13px; margin-top: 14px; padding-top: 13px; border-top: 1px solid #eef0f2; }
 .selected-card-title { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .selected-card-title strong, .selected-card-title .ant-typography { font-size: 10px; }
@@ -75,8 +66,21 @@ button, input, textarea { font: inherit; }
 .action-field .ant-input, .action-field .ant-input-textarea { grid-column: 1; font-size: 10px; }
 .action-field .ant-btn { grid-column: 2; grid-row: 2; font-size: 10px; }
 .action-field:has(textarea) .ant-btn { align-self: end; }
+.wallet-custom-fields { display: grid; gap: 9px; padding: 12px; border: 1px solid #e9edef; border-radius: 9px; background: #fbfcfd; }
+.custom-fields-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.custom-fields-heading > div { display: grid; }
+.custom-fields-heading strong { color: #43586b; font-size: 11px; }
+.custom-fields-heading .ant-typography { font-size: 9px; }
+.wallet-field-list { display: grid; gap: 8px; }
+.wallet-field-row { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr) auto; align-items: start; gap: 7px; }
+.wallet-field-row .ant-input, .wallet-field-row .ant-input-textarea { font-size: 10px; }
+.wallet-custom-fields > .ant-btn { justify-self: start; font-size: 10px; }
 .card-action-buttons { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding-top: 3px; }
 .card-action-buttons .ant-btn { font-size: 10px; }
+.renewal-editor { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px 9px; align-items: center; }
+.renewal-editor label, .renewal-editor .ant-typography { grid-column: 1 / -1; color: #556777; font-size: 10px; }
+.renewal-editor .ant-input { grid-column: 1 / -1; font-size: 10px; }
+.renewal-editor .ant-btn { grid-column: 2; justify-self: end; }
 .page-loading { min-height: 360px; display: grid; place-items: center; }
 .page-footer { display: flex; justify-content: center; margin-top: 20px; color: #a1aab1; font-size: 9px; }
 .page-footer .anticon { color: #c4775c; }
@@ -94,4 +98,8 @@ button, input, textarea { font: inherit; }
   .simple-card .ant-card-body { padding: 14px; }
   .panel-footer { align-items: stretch; flex-direction: column; }
   .panel-footer .ant-btn { width: 100%; }
+  .custom-fields-heading { align-items: stretch; flex-direction: column; }
+  .wallet-field-row { grid-template-columns: 1fr auto; }
+  .wallet-field-row .ant-input-textarea { grid-column: 1 / -1; grid-row: 2; }
+  .wallet-field-row .ant-btn { grid-column: 2; grid-row: 1; }
 }

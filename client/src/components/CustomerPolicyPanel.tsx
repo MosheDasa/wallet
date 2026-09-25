@@ -1,8 +1,9 @@
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Button, Card, Checkbox, Empty, Tag, Typography } from "antd";
+import { Button, Card, Empty, Select, Tag, Typography } from "antd";
 import type { Customer, Policy } from "../types";
 
 const { Text } = Typography;
+const SELECT_ALL = "__select_all_policies__";
 
 interface Props {
   customer?: Customer;
@@ -18,9 +19,15 @@ interface Props {
 export function CustomerPolicyPanel({
   customer, policies, selectedIds, loading, issuing, walletReady, onSelectionChange, onIssue,
 }: Props) {
-  const togglePolicy = (policyId: string, checked: boolean) => {
-    onSelectionChange(checked ? [...selectedIds, policyId] : selectedIds.filter((id) => id !== policyId));
+  const handleSelectionChange = (values: string[]) => {
+    if (values.includes(SELECT_ALL)) {
+      onSelectionChange(selectedIds.length === policies.length ? [] : policies.map((policy) => policy.id));
+      return;
+    }
+    onSelectionChange(values.filter((value) => value !== SELECT_ALL));
   };
+
+  const allSelected = policies.length > 0 && selectedIds.length === policies.length;
 
   return (
     <Card className="simple-card" bordered={false} loading={loading}>
@@ -28,7 +35,7 @@ export function CustomerPolicyPanel({
         <div className="step-number">1</div>
         <div>
           <h2>בחרו פוליסות</h2>
-          <Text type="secondary">הכרטיסים שתבחרו יישמרו יחד בארנק</Text>
+          <Text type="secondary">בחרו פוליסה אחת או יותר, או בחרו את כולן</Text>
         </div>
         <Tag>{policies.length}</Tag>
       </div>
@@ -40,27 +47,38 @@ export function CustomerPolicyPanel({
       ) : policies.length === 0 ? (
         <Empty description="לא נמצאו פוליסות ללקוח" />
       ) : (
-        <div className="policy-list">
-          {policies.map((policy) => {
-            const checked = selectedIds.includes(policy.id);
-            return (
-              <div className={"policy-row" + (checked ? " selected" : "")} key={policy.id}>
-                <Checkbox
-                  checked={checked}
-                  onChange={(event) => togglePolicy(policy.id, event.target.checked)}
-                  aria-label={"בחירת " + policy.label}
-                />
-                <button type="button" className="policy-label" onClick={() => togglePolicy(policy.id, !checked)}>
-                  <strong>{policy.label}</strong>
-                  <span>{policy.description}</span>
-                  <small>{policy.policyNumber} · בתוקף עד {new Date(policy.validUntil).toLocaleDateString("he-IL")}</small>
-                </button>
-                <Tag color={policy.status === "active" ? "green" : "gold"}>
-                  {policy.status === "active" ? "פעילה" : "בטיפול"}
-                </Tag>
-              </div>
-            );
-          })}
+        <div className="policy-select-control">
+          <label htmlFor="policy-select">פוליסות להנפקה</label>
+          <Select
+            id="policy-select"
+            mode="multiple"
+            showSearch
+            allowClear
+            optionFilterProp="label"
+            maxTagCount="responsive"
+            value={selectedIds}
+            onChange={handleSelectionChange}
+            placeholder="בחרו פוליסות"
+            options={[
+              { value: SELECT_ALL, label: allSelected ? "ביטול בחירת כל הפוליסות" : "בחירת כל הפוליסות" },
+              ...policies.map((policy) => ({ value: policy.id, label: policy.label })),
+            ]}
+            optionRender={(option) => {
+              if (option.value === SELECT_ALL) {
+                return <strong className="select-all-option">{allSelected ? "ביטול בחירת כל הפוליסות" : "בחירת כל הפוליסות"}</strong>;
+              }
+              const policy = policies.find((item) => item.id === option.value);
+              if (!policy) return option.label;
+              return (
+                <div className="policy-select-option">
+                  <span><strong>{policy.label}</strong><small>{policy.description}</small></span>
+                  <Tag color={policy.status === "active" ? "blue" : "gold"}>
+                    {policy.status === "active" ? "פעילה" : "בטיפול"}
+                  </Tag>
+                </div>
+              );
+            }}
+          />
         </div>
       )}
 

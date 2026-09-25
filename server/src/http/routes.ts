@@ -1,5 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { Router, type Request, type Response } from "express";
 import { CUSTOMERS, POLICY_TYPE_DEFINITIONS, POLICY_TYPES } from "../domain/policies";
+import type { WalletTextField } from "../domain/types";
 import { IssuedCardRepository } from "../services/issuedCardRepository";
 import { WalletService } from "../services/walletService";
 
@@ -56,6 +58,12 @@ export function createApiRouter(repository: IssuedCardRepository, wallet: Wallet
     return response.json(repository.listForCustomer(request.params.customerId).filter((card) => card.provider === "google"));
   });
 
+  router.post("/wallet/branding/apply", asyncRoute(async (_request, response) => {
+    const cards = repository.listAll().filter((card) => card.provider === "google");
+    const updated = await wallet.applyLogo(cards);
+    return response.json({ ok: true, updated, logoUrl: "https://i.ibb.co/rRmZ8swb/yashir-log.png" });
+  }));
+
   router.post("/wallet/issue", asyncRoute(async (request, response) => {
     const { customerId, policyIds } = request.body as { customerId?: unknown; policyIds?: unknown };
     if (typeof customerId !== "string" || !Array.isArray(policyIds) || policyIds.some((id) => typeof id !== "string")) {
@@ -85,12 +93,16 @@ export function createApiRouter(repository: IssuedCardRepository, wallet: Wallet
     if (!objectId) return;
     const card = repository.get(objectId);
     if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
-    const body = (request.body as { body?: unknown }).body;
+    const { header: rawHeader, body } = request.body as { header?: unknown; body?: unknown };
+    const header = rawHeader === undefined ? "ביטוח ישיר" : rawHeader;
+    if (typeof header !== "string" || !header.trim() || header.length > 60) {
+      return response.status(400).json({ error: "נדרשת כותרת באורך 1–60 תווים." });
+    }
     if (typeof body !== "string" || !body.trim() || body.length > 500) {
       return response.status(400).json({ error: "נדרשת הודעה באורך של 1–500 תווים." });
     }
-    await wallet.addMessage(objectId, body.trim());
-    return response.json({ ok: true, objectId, messageType: "TEXT_AND_NOTIFY" });
+    await wallet.addMessage(objectId, header.trim(), body.trim());
+    return response.json({ ok: true, objectId, header: header.trim(), messageType: "TEXT_AND_NOTIFY" });
   }));
 
   router.patch("/wallet/objects/:objectId", asyncRoute(async (request, response) => {
@@ -116,6 +128,46 @@ export function createApiRouter(repository: IssuedCardRepository, wallet: Wallet
     return response.json({ ok: true, objectId, updated });
   }));
 
+  router.get("/wallet/objects/:objectId/fields", asyncRoute(async (request, response) => {
+    const objectId = requireObjectId(request, response);
+    if (!objectId) return;
+    const card = repository.get(objectId);
+    if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
+    return response.json({ fields: await wallet.getTextFields(objectId) });
+  }));
+
+  router.patch("/wallet/objects/:objectId/fields", asyncRoute(async (request, response) => {
+    const objectId = requireObjectId(request, response);
+    if (!objectId) return;
+    const card = repository.get(objectId);
+    if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
+    const input = (request.body as { fields?: unknown }).fields;
+    if (!Array.isArray(input) || input.length > 10) {
+      return response.status(400).json({ error: "יש לשלוח עד 10 שדות בכרטיס." });
+    }
+    const fields: WalletTextField[] = [];
+    for (const value of input) {
+      if (!value || typeof value !== "object") {
+        return response.status(400).json({ error: "מבנה השדות אינו תקין." });
+      }
+      const field = value as Record<string, unknown>;
+      const header = typeof field.header === "string" ? field.header.trim() : "";
+      const body = typeof field.body === "string" ? field.body.trim() : "";
+      const id = typeof field.id === "string" && /^[A-Za-z0-9_-]{1,40}$/.test(field.id)
+        ? field.id
+        : "custom_" + randomUUID().replaceAll("-", "").slice(0, 16);
+      if (!header || !body || header.length > 60 || body.length > 500) {
+        return response.status(400).json({ error: "לכל שדה נדרשים שם (עד 60 תווים) וערך (עד 500 תווים)." });
+      }
+      fields.push({ id, header, body });
+    }
+    if (new Set(fields.map((field) => field.id)).size !== fields.length) {
+      return response.status(400).json({ error: "מזהי השדות חייבים להיות ייחודיים." });
+    }
+    await wallet.updateTextFields(objectId, fields);
+    return response.json({ ok: true, objectId, fields });
+  }));
+
   router.post("/wallet/objects/:objectId/mark-invalid", asyncRoute(async (request, response) => {
     const objectId = requireObjectId(request, response);
     if (!objectId) return;
@@ -126,6 +178,16 @@ export function createApiRouter(repository: IssuedCardRepository, wallet: Wallet
     return response.json({ ok: true, objectId, state: "ACTIVE", isMarkedInvalid: true });
   }));
 
+  router.post("/wallet/objects/:objectId/mark-valid", asyncRoute(async (request, response) => {
+    const objectId = requireObjectId(request, response);
+    if (!objectId) return;
+    const card = repository.get(objectId);
+    if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
+    await wallet.markObjectValid(card);
+    await repository.markValid(objectId);
+    return response.json({ ok: true, objectId, state: "ACTIVE", isMarkedInvalid: false });
+  }));
+
   router.post("/wallet/objects/:objectId/car-renewal", asyncRoute(async (request, response) => {
     const objectId = requireObjectId(request, response);
     if (!objectId) return;
@@ -134,10 +196,16 @@ export function createApiRouter(repository: IssuedCardRepository, wallet: Wallet
     if (card.policyType !== "auto") {
       return response.status(400).json({ error: "פעולת חידוש הרכב זמינה לפוליסת רכב בלבד." });
     }
-    const result = await wallet.sendCarRenewal(objectId);
+    const rawHeader = (request.body as { header?: unknown } | undefined)?.header;
+    const header = rawHeader === undefined ? "ביטוח ישיר" : rawHeader;
+    if (typeof header !== "string" || !header.trim() || header.length > 60) {
+      return response.status(400).json({ error: "נדרשת כותרת לתזכורת באורך 1–60 תווים." });
+    }
+    const result = await wallet.sendCarRenewal(objectId, header.trim());
     return response.json({
       ok: true,
       objectId,
+      header: header.trim(),
       message: "זמן לחדש את הרכב",
       linkText: "לחץ כאן",
       renewalUrl: result.renewalUrl,

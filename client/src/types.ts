@@ -1,6 +1,12 @@
 export type PolicyType = "auto" | "home" | "mortgage" | "savings" | "health" | "life";
 export type WalletState = "ACTIVE" | "EXPIRED" | "INACTIVE" | "COMPLETED";
 
+export interface WalletTextField {
+  id: string;
+  header: string;
+  body: string;
+}
+
 export interface Customer {
   id: string;
   name: string;

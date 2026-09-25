@@ -4,7 +4,7 @@ import { Alert, Button, Select, Space, Spin, Tag, Typography, message } from "an
 import { api } from "./api";
 import { CustomerPolicyPanel } from "./components/CustomerPolicyPanel";
 import { WalletCardsPanel } from "./components/WalletCardsPanel";
-import type { Customer, IssueResult, Policy, WalletCard } from "./types";
+import type { Customer, IssueResult, Policy, WalletCard, WalletTextField } from "./types";
 
 const { Text } = Typography;
 
@@ -14,6 +14,8 @@ function App() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>();
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [cards, setCards] = useState<WalletCard[]>([]);
+  const [cardFields, setCardFields] = useState<WalletTextField[]>([]);
+  const [fieldsLoading, setFieldsLoading] = useState(false);
   const [selectedPolicyIds, setSelectedPolicyIds] = useState<string[]>([]);
   const [selectedObjectId, setSelectedObjectId] = useState<string>();
   const [issueResult, setIssueResult] = useState<IssueResult>();
@@ -62,6 +64,21 @@ function App() {
       .finally(() => { if (active) setCustomerLoading(false); });
     return () => { active = false; };
   }, [selectedCustomerId]);
+
+  useEffect(() => {
+    if (!selectedObjectId) {
+      setCardFields([]);
+      setFieldsLoading(false);
+      return;
+    }
+    let active = true;
+    setFieldsLoading(true);
+    api.fields(selectedObjectId)
+      .then(({ fields }) => { if (active) setCardFields(fields); })
+      .catch((cause: Error) => { if (active) setError(cause.message); })
+      .finally(() => { if (active) setFieldsLoading(false); });
+    return () => { active = false; };
+  }, [selectedObjectId]);
 
   const refreshCards = async (customerId = selectedCustomerId) => {
     if (!customerId) return;
@@ -118,8 +135,8 @@ function App() {
     }
   };
 
-  const handleMessage = (body: string) => withAction(
-    async () => { if (selectedObjectId) await api.sendMessage(selectedObjectId, body); },
+  const handleMessage = (header: string, body: string) => withAction(
+    async () => { if (selectedObjectId) await api.sendMessage(selectedObjectId, header, body); },
     "הודעת Wallet נשלחה",
   );
 
@@ -128,13 +145,39 @@ function App() {
     "הכרטיס עודכן",
   );
 
+  const handleSaveFields = (fields: WalletTextField[]) => withAction(
+    async () => {
+      if (!selectedObjectId) return;
+      const result = await api.updateFields(selectedObjectId, fields);
+      setCardFields(result.fields);
+    },
+    "השדות עודכנו בכרטיס Google Wallet",
+  );
+
   const handleMarkInvalid = () => withAction(
-    async () => { if (selectedObjectId) await api.markCardNotValid(selectedObjectId); },
+    async () => {
+      if (!selectedObjectId) return;
+      await api.markCardNotValid(selectedObjectId);
+      setCardFields((fields) => fields.some((field) => field.id === "policy-status")
+        ? fields.map((field) => field.id === "policy-status"
+          ? { ...field, header: "סטטוס הפוליסה", body: "לא בתוקף" }
+          : field)
+        : [...fields, { id: "policy-status", header: "סטטוס הפוליסה", body: "לא בתוקף" }]);
+    },
     "הכרטיס נשאר בארנק וסומן כלא בתוקף",
   );
 
-  const handleRenewCar = () => withAction(
-    async () => { if (selectedObjectId) await api.renewCar(selectedObjectId); },
+  const handleMarkValid = () => withAction(
+    async () => {
+      if (!selectedObjectId) return;
+      await api.markCardValid(selectedObjectId);
+      setCardFields((fields) => fields.filter((field) => field.id !== "policy-status"));
+    },
+    "הכרטיס הופעל והוחזר לצבע כחול",
+  );
+
+  const handleRenewCar = (header: string) => withAction(
+    async () => { if (selectedObjectId) await api.renewCar(selectedObjectId, header); },
     "נשלחה תזכורת החידוש וקישור הכרטיס עודכן",
   );
 
@@ -213,13 +256,18 @@ function App() {
           />
           <WalletCardsPanel
             cards={cards}
+            fields={cardFields}
+            fieldsLoading={fieldsLoading}
             loading={customerLoading}
             busy={actionBusy}
             selectedObjectId={selectedObjectId}
             onSelect={setSelectedObjectId}
             onMessage={handleMessage}
             onUpdate={handleUpdate}
+            onFieldsChange={setCardFields}
+            onSaveFields={handleSaveFields}
             onMarkInvalid={handleMarkInvalid}
+            onMarkValid={handleMarkValid}
             onRenewCar={handleRenewCar}
           />
         </div>

@@ -18,12 +18,12 @@ export interface PolicyTypeDefinition {
 }
 
 export const POLICY_TYPE_DEFINITIONS: Record<PolicyType, PolicyTypeDefinition> = {
-  auto: { type: "auto", label: "ביטוח רכב", genericType: "GENERIC_AUTO_INSURANCE", classSuffix: "auto_insurance", accent: "#e76c40" },
-  home: { type: "home", label: "ביטוח דירה", genericType: "GENERIC_HOME_INSURANCE", classSuffix: "home_insurance", accent: "#3a8c86" },
-  mortgage: { type: "mortgage", label: "ביטוח משכנתא", genericType: "GENERIC_OTHER", classSuffix: "mortgage_insurance", accent: "#6778ad" },
-  savings: { type: "savings", label: "חיסכון ישיר", genericType: "GENERIC_OTHER", classSuffix: "direct_savings", accent: "#3f9270" },
-  health: { type: "health", label: "ביטוח בריאות", genericType: "GENERIC_OTHER", classSuffix: "health_insurance", accent: "#8e6bb1" },
-  life: { type: "life", label: "ביטוח חיים", genericType: "GENERIC_OTHER", classSuffix: "life_insurance", accent: "#4388a6" },
+  auto: { type: "auto", label: "ביטוח רכב", genericType: "GENERIC_AUTO_INSURANCE", classSuffix: "auto_insurance", accent: "#1769AA" },
+  home: { type: "home", label: "ביטוח דירה", genericType: "GENERIC_HOME_INSURANCE", classSuffix: "home_insurance", accent: "#1769AA" },
+  mortgage: { type: "mortgage", label: "ביטוח משכנתא", genericType: "GENERIC_OTHER", classSuffix: "mortgage_insurance", accent: "#1769AA" },
+  savings: { type: "savings", label: "חיסכון ישיר", genericType: "GENERIC_OTHER", classSuffix: "direct_savings", accent: "#1769AA" },
+  health: { type: "health", label: "ביטוח בריאות", genericType: "GENERIC_OTHER", classSuffix: "health_insurance", accent: "#1769AA" },
+  life: { type: "life", label: "ביטוח חיים", genericType: "GENERIC_OTHER", classSuffix: "life_insurance", accent: "#1769AA" },
 };
 
 export interface Policy {
@@ -44,6 +44,17 @@ export interface Customer {
 }
 
 export const CUSTOMERS: Customer[] = [
+  {
+    id: "customer-moshe-dasa", name: "משה דסה", email: "moshe.dasa@example.com", phone: "050-555-0186",
+    policies: [
+      { id: "policy-auto-moshe-dasa", type: "auto", policyNumber: "רכב · 5284176", status: "active", validUntil: "2027-12-31", description: "יונדאי טוסון · 2023" },
+      { id: "policy-home-moshe-dasa", type: "home", policyNumber: "דירה · 7346102", status: "active", validUntil: "2027-08-31", description: "דירת 4 חדרים · ירושלים" },
+      { id: "policy-mortgage-moshe-dasa", type: "mortgage", policyNumber: "משכנתא · 1649028", status: "active", validUntil: "2036-12-31", description: "ביטוח חיים למשכנתא" },
+      { id: "policy-savings-moshe-dasa", type: "savings", policyNumber: "חיסכון · 9831574", status: "active", validUntil: "2031-01-01", description: "תוכנית חיסכון ישיר" },
+      { id: "policy-health-moshe-dasa", type: "health", policyNumber: "בריאות · 6152840", status: "active", validUntil: "2027-12-31", description: "כיסוי בריאות פרטי ומשפחתי" },
+      { id: "policy-life-moshe-dasa", type: "life", policyNumber: "חיים · 4073916", status: "active", validUntil: "2028-06-30", description: "ביטוח חיים למשפחה" },
+    ],
+  },
   {
     id: "customer-1001", name: "נועה לוי", email: "noa.levi@example.com", phone: "050-555-0142",
     policies: [
