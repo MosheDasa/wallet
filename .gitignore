@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.local
+server/data/issued-cards.json
+server/data/issued-cards.json.tmp
+*.log
+*.tsbuildinfo
+service-account*.json
