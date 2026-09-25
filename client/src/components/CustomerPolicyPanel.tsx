@@ -6,7 +6,10 @@ const { Text } = Typography;
 const SELECT_ALL = "__select_all_policies__";
 
 interface Props {
+  customers: Customer[];
   customer?: Customer;
+  selectedCustomerId?: string;
+  onCustomerChange: (customerId: string) => void;
   policies: Policy[];
   selectedIds: string[];
   loading: boolean;
@@ -17,7 +20,8 @@ interface Props {
 }
 
 export function CustomerPolicyPanel({
-  customer, policies, selectedIds, loading, issuing, walletReady, onSelectionChange, onIssue,
+  customers, customer, selectedCustomerId, onCustomerChange, policies, selectedIds, loading, issuing,
+  walletReady, onSelectionChange, onIssue,
 }: Props) {
   const handleSelectionChange = (values: string[]) => {
     if (values.includes(SELECT_ALL)) {
@@ -35,12 +39,27 @@ export function CustomerPolicyPanel({
         <div className="step-number">1</div>
         <div>
           <h2>בחרו פוליסות</h2>
-          <Text type="secondary">בחרו פוליסה אחת או יותר, או בחרו את כולן</Text>
         </div>
         <Tag>{policies.length}</Tag>
       </div>
 
-      {customer && <div className="customer-line"><strong>{customer.name}</strong><span>{customer.email}</span></div>}
+      <div className="panel-customer-picker">
+        <label htmlFor="customer-select">לקוח</label>
+        <Select
+          id="customer-select"
+          showSearch
+          optionFilterProp="label"
+          value={selectedCustomerId}
+          onChange={onCustomerChange}
+          placeholder="בחירת לקוח"
+          options={customers.map((item) => ({ value: item.id, label: item.name }))}
+          optionRender={(option) => {
+            const item = customers.find((candidate) => candidate.id === option.value);
+            return item ? <div className="customer-option"><strong>{item.name}</strong><small>{item.email}</small></div> : option.label;
+          }}
+          disabled={customers.length === 0}
+        />
+      </div>
 
       {!customer ? (
         <Empty description="בחרו לקוח כדי לראות את הפוליסות שלו" />

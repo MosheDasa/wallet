@@ -19,29 +19,16 @@ button, input, textarea { font: inherit; }
 .brand strong { color: #20364b; font-size: 16px; font-weight: 700; }
 .brand small { color: #77889a; font-size: 12px; }
 .app-header .ant-tag { margin: 0; padding: 4px 11px; border-radius: 20px; font-size: 12px; }
-.page-intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding: 31px 0 20px; }
-.eyebrow { margin-bottom: 5px; color: #1768ad; font-size: 12px; font-weight: 700; }
-.page-intro h1 { margin: 0; color: #182f45; font-size: 29px; line-height: 1.35; font-weight: 700; }
-.page-intro p { margin: 5px 0 0; color: #708197; font-size: 14px; }
-.customer-picker { width: 280px; display: grid; gap: 7px; }
-.customer-picker label, .policy-select-control label, .existing-card-select label { color: #54677a; font-size: 13px; font-weight: 600; }
-.customer-picker .ant-select-selector, .policy-select-control .ant-select-selector, .existing-card-select .ant-select-selector { border-color: #dce5ed !important; box-shadow: none !important; }
-.customer-picker .ant-select-selector { min-height: 44px; align-items: center; }
+.panel-customer-picker { display: grid; gap: 8px; margin: 0 0 20px; }
+.panel-customer-picker label, .policy-select-control label, .existing-card-select label { color: #54677a; font-size: 13px; font-weight: 600; }
+.panel-customer-picker .ant-select-selector, .policy-select-control .ant-select-selector, .existing-card-select .ant-select-selector { border-color: #dce5ed !important; box-shadow: none !important; }
+.panel-customer-picker .ant-select-selector { min-height: 46px; align-items: center; }
+.customer-option { display: grid; gap: 2px; }
+.customer-option strong { color: #304a62; font-size: 13px; }
+.customer-option small { color: #8291a0; font-size: 11px; }
 .setup-alert, .save-result { margin-bottom: 16px; border-radius: 12px; }
 .save-result-content { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .save-result-content .ant-btn { padding-inline: 0; font-weight: 600; }
-.overview-grid { display: grid; grid-template-columns: repeat(3, minmax(145px, 1fr)) minmax(240px, 1.35fr); gap: 12px; margin-bottom: 18px; }
-.overview-card, .overview-customer { min-height: 84px; display: flex; align-items: center; gap: 13px; padding: 14px 16px; border: 1px solid #e6edf4; border-radius: 14px; background: #fff; box-shadow: 0 3px 12px #183d5d06; }
-.overview-icon { width: 40px; height: 40px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 12px; color: #1767ab; background: #eaf3fc; font-size: 18px; }
-.overview-icon.blue { color: #fff; background: #1767ab; }
-.overview-icon.green { color: #187957; background: #e7f6ef; }
-.overview-card > div, .overview-customer > div { display: flex; min-width: 0; flex-direction: column; }
-.overview-card span:not(.overview-icon), .overview-customer > div > span { color: #77889a; font-size: 12px; }
-.overview-card strong { color: #20364b; font-size: 21px; line-height: 1.2; }
-.overview-customer { background: #f9fbfd; }
-.customer-avatar { width: 42px; height: 42px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 50%; color: #145d9c; background: #e4f0fa; font-size: 17px; font-weight: 700; }
-.overview-customer strong { overflow: hidden; color: #23394e; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
-.overview-customer small { overflow: hidden; color: #8a99a9; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .main-grid { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 18px; align-items: start; }
 .simple-card { min-width: 0; border: 1px solid #e5ebf1; border-radius: 16px; box-shadow: 0 5px 20px #193b5c0a; }
 .simple-card .ant-card-body { padding: 23px; }
@@ -52,8 +39,6 @@ button, input, textarea { font: inherit; }
 .panel-heading > .ant-tag { margin: 0; padding: 2px 9px; color: #1767ab; border-color: #d9eaf8; border-radius: 20px; background: #eff7fe; font-weight: 600; }
 .step-number { width: 34px; height: 34px; display: grid; flex: 0 0 auto; place-items: center; border: 1px solid #cfe4f8; border-radius: 11px; color: #1267ad; background: #eaf4fd; font-weight: 700; }
 .secondary-step { color: #fff; border-color: #1767ab; background: #1767ab; }
-.customer-line { display: flex; gap: 10px; margin: -5px 0 17px; color: #8391a0; font-size: 12px; }
-.customer-line strong { color: #334b62; font-size: 13px; }
 .policy-select-control, .existing-card-select { display: grid; gap: 8px; }
 .policy-select-control .ant-select, .existing-card-select .ant-select { width: 100%; }
 .policy-select-control .ant-select-selector, .existing-card-select .ant-select-selector { min-height: 46px; align-items: center; }
@@ -77,6 +62,27 @@ button, input, textarea { font: inherit; }
 .selected-card-title { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 11px 13px; border: 1px solid #dcebf8; border-radius: 10px; background: #f4f9fe; }
 .selected-card-title strong { color: #1d4e79; font-size: 14px; }
 .selected-card-title .ant-typography { font-size: 12px; }
+.wallet-action-tabs .ant-tabs-nav { margin-bottom: 16px; }
+.wallet-action-tabs .ant-tabs-tab { padding: 11px 8px; color: #6c7f92; font-size: 13px; }
+.wallet-action-tabs .ant-tabs-tab-active .ant-tabs-tab-btn { color: #1767ab; font-weight: 700; }
+.wallet-tab-label { display: inline-flex; align-items: center; gap: 7px; }
+.wallet-tab-label .anticon { font-size: 14px; }
+.wallet-action-tabs .ant-tabs-content-holder { min-height: 250px; }
+.tab-content { display: grid; gap: 14px; padding: 2px 0 4px; }
+.action-section, .status-section { display: grid; gap: 15px; padding: 16px; border: 1px solid #e5ecf2; border-radius: 12px; background: #fff; }
+.action-section-heading { display: flex; align-items: center; gap: 10px; color: #1767ab; }
+.action-section-heading > .anticon { width: 34px; height: 34px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 10px; background: #eaf4fd; font-size: 16px; }
+.action-section-heading > div { display: grid; gap: 2px; }
+.action-section-heading strong { color: #344d65; font-size: 14px; }
+.action-section-heading .ant-typography { color: #8291a0; font-size: 11px; }
+.status-section { gap: 18px; background: #fafcfe; }
+.status-summary { display: flex; align-items: center; gap: 12px; }
+.status-icon { width: 42px; height: 42px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 12px; color: #1767ab; background: #eaf4fd; font-size: 19px; }
+.status-summary > div:nth-child(2) { display: grid; flex: 1; gap: 3px; }
+.status-summary strong { color: #344d65; font-size: 14px; }
+.status-summary .ant-typography { color: #8291a0; font-size: 11px; }
+.status-summary .ant-tag { margin: 0; flex: 0 0 auto; }
+.status-section > .ant-btn { justify-self: start; min-height: 40px; font-weight: 600; }
 .action-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; }
 .action-field label { grid-column: 1 / -1; display: flex; gap: 7px; align-items: center; color: #40566c; font-size: 13px; font-weight: 600; }
 .action-field .ant-input, .action-field .ant-input-textarea { grid-column: 1; font-size: 13px; }
@@ -96,11 +102,8 @@ button, input, textarea { font: inherit; }
 .wallet-custom-fields > .ant-btn { justify-self: start; font-weight: 600; }
 .card-action-buttons { display: grid; gap: 12px; padding-top: 2px; }
 .card-action-buttons .ant-btn { font-size: 12px; font-weight: 600; }
-.renewal-editor { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; padding: 15px; border: 1px solid #d7e9f8; border-radius: 12px; background: #f3f8fd; }
-.renewal-editor label, .renewal-editor .ant-typography { grid-column: 1 / -1; color: #40566c; font-size: 13px; }
-.renewal-editor label { font-weight: 600; }
-.renewal-editor .ant-input { grid-column: 1 / -1; min-height: 40px; font-size: 13px; }
-.renewal-editor .ant-typography { color: #8291a1; font-size: 11px; }
+.renewal-editor { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; padding: 16px 0 0; border-top: 1px solid #e5ecf2; }
+.renewal-editor .ant-typography { grid-column: 1 / -1; color: #8291a1; font-size: 11px; }
 .renewal-editor .ant-btn { grid-column: 2; justify-self: end; }
 .page-loading { min-height: 360px; display: grid; place-items: center; }
 .page-footer { display: flex; justify-content: center; margin-top: 22px; color: #8291a0; font-size: 11px; }
@@ -110,14 +113,10 @@ button, input, textarea { font: inherit; }
   .app-page { width: min(100% - 44px, 900px); }
   .main-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
   .simple-card .ant-card-body { padding: 18px; }
-  .overview-grid { grid-template-columns: repeat(3, minmax(130px, 1fr)); }
-  .overview-customer { grid-column: 1 / -1; }
 }
 @media (max-width: 760px) {
   .app-page { width: min(100% - 32px, 600px); }
   .main-grid { grid-template-columns: 1fr; }
-  .page-intro { align-items: stretch; flex-direction: column; gap: 16px; }
-  .customer-picker { width: 100%; }
 }
 @media (max-width: 520px) {
   .app-page { width: min(100% - 24px, 460px); }
@@ -126,19 +125,18 @@ button, input, textarea { font: inherit; }
   .brand strong { font-size: 14px; }
   .brand small { font-size: 10px; }
   .app-header .ant-tag { max-width: 150px; white-space: normal; text-align: center; }
-  .page-intro { padding: 23px 0 16px; }
-  .page-intro h1 { font-size: 24px; }
-  .page-intro p { font-size: 12px; }
-  .overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .overview-card, .overview-customer { min-height: 72px; gap: 9px; padding: 10px; }
-  .overview-icon, .customer-avatar { width: 34px; height: 34px; }
-  .overview-card span:not(.overview-icon), .overview-customer > div > span { font-size: 10px; }
-  .overview-card strong { font-size: 18px; }
-  .overview-customer { grid-column: 1 / -1; }
   .simple-card .ant-card-body { padding: 15px; }
   .panel-heading { gap: 9px; margin-bottom: 16px; }
   .panel-heading h2 { font-size: 16px; }
   .panel-heading .ant-typography { font-size: 10px; }
+  .wallet-action-tabs .ant-tabs-tab { padding: 10px 5px; font-size: 11px; }
+  .wallet-tab-label { gap: 5px; }
+  .wallet-action-tabs .ant-tabs-content-holder { min-height: 0; }
+  .action-section, .status-section { padding: 12px; }
+  .status-summary { flex-wrap: wrap; }
+  .status-summary > div:nth-child(2) { min-width: calc(100% - 90px); }
+  .status-summary .ant-tag { margin-inline-start: 54px; }
+  .status-section > .ant-btn { width: 100%; }
   .panel-footer { align-items: stretch; flex-direction: column; }
   .panel-footer .ant-btn { width: 100%; }
   .custom-fields-heading { align-items: stretch; flex-direction: column; }

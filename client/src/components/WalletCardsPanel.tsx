@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { BellOutlined, CheckCircleOutlined, DeleteOutlined, LinkOutlined, PlusOutlined, SendOutlined, StopOutlined } from "@ant-design/icons";
-import { Button, Card, Empty, Input, Select, Tag, Typography } from "antd";
+import { BellOutlined, CheckCircleOutlined, DeleteOutlined, EditOutlined, LinkOutlined, PlusOutlined, SafetyCertificateOutlined, SendOutlined, StopOutlined } from "@ant-design/icons";
+import { Button, Card, Empty, Input, Select, Tabs, Tag, Typography } from "antd";
 import { WALLET_LOGO_URL } from "../branding";
 import type { WalletCard, WalletTextField } from "../types";
 
@@ -29,7 +29,6 @@ export function WalletCardsPanel({
 }: Props) {
   const [messageText, setMessageText] = useState("");
   const [messageHeader, setMessageHeader] = useState("");
-  const [renewalHeader, setRenewalHeader] = useState("");
   const [newHeader, setNewHeader] = useState("");
   const selectedCard = cards.find((card) => card.objectId === selectedObjectId);
   const cardIsNotValid = (card: WalletCard) => card.isMarkedInvalid === true || card.state !== "ACTIVE";
@@ -37,7 +36,7 @@ export function WalletCardsPanel({
   useEffect(() => {
     setMessageText("");
     setMessageHeader("");
-    setRenewalHeader("");
+    setNewHeader("");
   }, [selectedObjectId]);
 
   return (
@@ -46,7 +45,6 @@ export function WalletCardsPanel({
         <div className="step-number secondary-step">2</div>
         <div>
           <h2>ניהול כרטיס קיים</h2>
-          <Text type="secondary">בחרו כרטיס ושלחו עדכון ישירות ל־Google Wallet</Text>
         </div>
         <Tag>{cards.length}</Tag>
       </div>
@@ -88,168 +86,208 @@ export function WalletCardsPanel({
                 <strong>{selectedCard.policyName}</strong>
                 <Text type="secondary">{selectedCard.policyNumber}</Text>
               </div>
-              <div className="action-field">
-                <label htmlFor="wallet-message-header"><BellOutlined /> כותרת הודעת PUSH</label>
-                <Input
-                  id="wallet-message-header"
-                  value={messageHeader}
-                  onChange={(event) => setMessageHeader(event.target.value)}
-                  placeholder="כותרת ההתראה"
-                  maxLength={60}
-                />
-              </div>
-              <div className="action-field">
-                <label htmlFor="wallet-message">תוכן הודעת PUSH</label>
-                <Input.TextArea
-                  id="wallet-message"
-                  value={messageText}
-                  onChange={(event) => setMessageText(event.target.value)}
-                  placeholder="הקלידו הודעה ללקוח"
-                  maxLength={500}
-                  rows={2}
-                />
-                <Button
-                  icon={<SendOutlined />}
-                  loading={busy}
-                  disabled={!messageHeader.trim() || !messageText.trim()}
-                  onClick={async () => {
-                    if (await onMessage(messageHeader, messageText)) {
-                      setMessageText("");
-                      setMessageHeader("");
-                    }
-                  }}
-                >
-                  שליחת הודעה
-                </Button>
-              </div>
-
-              <div className="action-field">
-                <label htmlFor="wallet-header">עדכון נתון בכרטיס</label>
-                <Input
-                  id="wallet-header"
-                  value={newHeader}
-                  onChange={(event) => setNewHeader(event.target.value)}
-                  placeholder="כותרת חדשה"
-                  maxLength={80}
-                />
-                <Button
-                  loading={busy}
-                  disabled={!newHeader.trim()}
-                  onClick={async () => { if (await onUpdate(newHeader, "")) setNewHeader(""); }}
-                >
-                  עדכון
-                </Button>
-              </div>
-
-              <section className="wallet-custom-fields">
-                <div className="custom-fields-heading">
-                  <div>
-                    <strong>שדות בכרטיס</strong>
-                    <Text type="secondary">ערכו שדה קיים או הוסיפו שדה שיופיע בפרטי הפוליסה</Text>
-                  </div>
-                  <Button
-                    icon={<PlusOutlined />}
-                    disabled={fieldsLoading || busy || fields.length >= 10}
-                    onClick={() => onFieldsChange([
-                      ...fields,
-                      { id: "field_" + crypto.randomUUID().replaceAll("-", "").slice(0, 16), header: "", body: "" },
-                    ])}
-                  >
-                    הוספת שדה
-                  </Button>
-                </div>
-                {fieldsLoading ? (
-                  <Text type="secondary">טוען שדות מ־Google Wallet…</Text>
-                ) : fields.length === 0 ? (
-                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="אין שדות בכרטיס עדיין" />
-                ) : (
-                  <div className="wallet-field-list">
-                    {fields.map((field, index) => (
-                      <div className="wallet-field-row" key={field.id}>
-                        <Input
-                          aria-label={"שם שדה " + (index + 1)}
-                          value={field.header}
-                          placeholder="שם השדה"
-                          maxLength={60}
-                          onChange={(event) => onFieldsChange(fields.map((item) =>
-                            item.id === field.id ? { ...item, header: event.target.value } : item))}
-                        />
-                        <Input.TextArea
-                          aria-label={"ערך שדה " + (index + 1)}
-                          value={field.body}
-                          placeholder="ערך השדה"
-                          maxLength={500}
-                          autoSize={{ minRows: 1, maxRows: 3 }}
-                          onChange={(event) => onFieldsChange(fields.map((item) =>
-                            item.id === field.id ? { ...item, body: event.target.value } : item))}
-                        />
-                        <Button
-                          danger
-                          aria-label="מחיקת שדה"
-                          icon={<DeleteOutlined />}
-                          disabled={busy}
-                          onClick={async () => {
-                            const nextFields = fields.filter((item) => item.id !== field.id);
-                            onFieldsChange(nextFields);
-                            if (!await onSaveFields(nextFields)) onFieldsChange(fields);
-                          }}
-                        />
+              <Tabs
+                className="wallet-action-tabs"
+                defaultActiveKey="notifications"
+                items={[
+                  {
+                    key: "notifications",
+                    label: <span className="wallet-tab-label"><BellOutlined /> התראות</span>,
+                    children: (
+                      <div className="tab-content">
+                        <section className="action-section">
+                          <div className="action-section-heading">
+                            <BellOutlined />
+                            <div><strong>שליחת הודעה ללקוח</strong></div>
+                          </div>
+                          <div className="action-field">
+                            <label htmlFor="wallet-message-header">כותרת הודעת PUSH</label>
+                            <Input
+                              id="wallet-message-header"
+                              value={messageHeader}
+                              onChange={(event) => setMessageHeader(event.target.value)}
+                              placeholder="כותרת ההתראה"
+                              maxLength={60}
+                            />
+                          </div>
+                          <div className="action-field">
+                            <label htmlFor="wallet-message">תוכן הודעת PUSH</label>
+                            <Input.TextArea
+                              id="wallet-message"
+                              value={messageText}
+                              onChange={(event) => setMessageText(event.target.value)}
+                              placeholder="הקלידו הודעה ללקוח"
+                              maxLength={500}
+                              rows={3}
+                            />
+                            <Button
+                              type="primary"
+                              icon={<SendOutlined />}
+                              loading={busy}
+                              disabled={!messageHeader.trim() || !messageText.trim()}
+                              onClick={async () => {
+                                if (await onMessage(messageHeader, messageText)) {
+                                  setMessageText("");
+                                  setMessageHeader("");
+                                }
+                              }}
+                          >
+                            שליחת הודעה
+                          </Button>
+                        </div>
+                        {selectedCard.policyType === "auto" && (
+                          <div className="renewal-editor">
+                            <Text type="secondary">תוכן ההודעה: זמן לחדש את הרכב</Text>
+                            <Button
+                              icon={<LinkOutlined />}
+                              loading={busy}
+                              disabled={!messageHeader.trim()}
+                              onClick={() => onRenewCar(messageHeader)}
+                            >
+                              שליחת תזכורת וקישור לחידוש
+                            </Button>
+                          </div>
+                        )}
+                        </section>
                       </div>
-                    ))}
-                  </div>
-                )}
-                <Button
-                  type="primary"
-                  loading={busy}
-                  disabled={fieldsLoading || fields.some((field) => !field.header.trim() || !field.body.trim())}
-                  onClick={() => onSaveFields(fields)}
-                >
-                  שמירת שדות בכרטיס
-                </Button>
-              </section>
+                    ),
+                  },
+                  {
+                    key: "details",
+                    label: <span className="wallet-tab-label"><EditOutlined /> פרטי הכרטיס</span>,
+                    children: (
+                      <div className="tab-content">
+                        <section className="action-section">
+                          <div className="action-section-heading">
+                            <EditOutlined />
+                            <div><strong>עדכון כותרת הכרטיס</strong></div>
+                          </div>
+                          <div className="action-field">
+                            <label htmlFor="wallet-header">כותרת חדשה</label>
+                            <Input
+                              id="wallet-header"
+                              value={newHeader}
+                              onChange={(event) => setNewHeader(event.target.value)}
+                              placeholder="הקלידו כותרת"
+                              maxLength={80}
+                            />
+                            <Button
+                              loading={busy}
+                              disabled={!newHeader.trim()}
+                              onClick={async () => { if (await onUpdate(newHeader, "")) setNewHeader(""); }}
+                            >
+                              עדכון כותרת
+                            </Button>
+                          </div>
+                        </section>
 
-              <div className="card-action-buttons">
-                {selectedCard.policyType === "auto" && (
-                  <div className="renewal-editor">
-                    <label htmlFor="renewal-message-header"><LinkOutlined /> כותרת התראת חידוש</label>
-                    <Input
-                      id="renewal-message-header"
-                      value={renewalHeader}
-                      onChange={(event) => setRenewalHeader(event.target.value)}
-                      placeholder="כותרת ההתראה"
-                      maxLength={60}
-                    />
-                    <Text type="secondary">תוכן קבוע: זמן לחדש את הרכב</Text>
-                    <Button
-                      icon={<LinkOutlined />}
-                      loading={busy}
-                      disabled={!renewalHeader.trim()}
-                      onClick={() => onRenewCar(renewalHeader)}
-                    >
-                      שליחת תזכורת חידוש
-                    </Button>
-                  </div>
-                )}
-                {cardIsNotValid(selectedCard) ? (
-                  <Button
-                    type="primary"
-                    icon={<CheckCircleOutlined />}
-                    loading={busy}
-                    onClick={onMarkValid}
-                  >
-                    הפוך לפעיל
-                  </Button>
-                ) : (
-                  <Button
-                    danger
-                    icon={<StopOutlined />}
-                    loading={busy}
-                    onClick={onMarkInvalid}
-                  >
-                    סימון כלא בתוקף
-                  </Button>
-                )}
-              </div>
+                        <section className="wallet-custom-fields">
+                          <div className="custom-fields-heading">
+                            <div>
+                              <strong>שדות בכרטיס</strong>
+                              <Text type="secondary">ערכו שדה קיים, הוסיפו שדה או מחקו אותו</Text>
+                            </div>
+                            <Button
+                              icon={<PlusOutlined />}
+                              disabled={fieldsLoading || busy || fields.length >= 10}
+                              onClick={() => onFieldsChange([
+                                ...fields,
+                                { id: "field_" + crypto.randomUUID().replaceAll("-", "").slice(0, 16), header: "", body: "" },
+                              ])}
+                            >
+                              הוספת שדה
+                            </Button>
+                          </div>
+                          {fieldsLoading ? (
+                            <Text type="secondary">טוען שדות מ־Google Wallet…</Text>
+                          ) : fields.length === 0 ? (
+                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="אין שדות בכרטיס עדיין" />
+                          ) : (
+                            <div className="wallet-field-list">
+                              {fields.map((field, index) => (
+                                <div className="wallet-field-row" key={field.id}>
+                                  <Input
+                                    aria-label={"שם שדה " + (index + 1)}
+                                    value={field.header}
+                                    placeholder="שם השדה"
+                                    maxLength={60}
+                                    onChange={(event) => onFieldsChange(fields.map((item) =>
+                                      item.id === field.id ? { ...item, header: event.target.value } : item))}
+                                  />
+                                  <Input.TextArea
+                                    aria-label={"ערך שדה " + (index + 1)}
+                                    value={field.body}
+                                    placeholder="ערך השדה"
+                                    maxLength={500}
+                                    autoSize={{ minRows: 1, maxRows: 3 }}
+                                    onChange={(event) => onFieldsChange(fields.map((item) =>
+                                      item.id === field.id ? { ...item, body: event.target.value } : item))}
+                                  />
+                                  <Button
+                                    danger
+                                    aria-label="מחיקת שדה"
+                                    icon={<DeleteOutlined />}
+                                    disabled={busy}
+                                    onClick={async () => {
+                                      const nextFields = fields.filter((item) => item.id !== field.id);
+                                      onFieldsChange(nextFields);
+                                      if (!await onSaveFields(nextFields)) onFieldsChange(fields);
+                                    }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <Button
+                            type="primary"
+                            loading={busy}
+                            disabled={fieldsLoading || fields.some((field) => !field.header.trim() || !field.body.trim())}
+                            onClick={() => onSaveFields(fields)}
+                          >
+                            שמירת שדות בכרטיס
+                          </Button>
+                        </section>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "status",
+                    label: <span className="wallet-tab-label"><SafetyCertificateOutlined /> סטטוס</span>,
+                    children: (
+                      <div className="tab-content">
+                        <section className="status-section">
+                          <div className="status-summary">
+                            <div className="status-icon"><SafetyCertificateOutlined /></div>
+                            <div><strong>סטטוס הכרטיס בארנק</strong></div>
+                            <Tag color={cardIsNotValid(selectedCard) ? "default" : "green"}>
+                              {cardIsNotValid(selectedCard) ? "לא בתוקף" : "פעיל"}
+                            </Tag>
+                          </div>
+                          {cardIsNotValid(selectedCard) ? (
+                            <Button
+                              type="primary"
+                              icon={<CheckCircleOutlined />}
+                              loading={busy}
+                              onClick={onMarkValid}
+                            >
+                              הפוך לפעיל
+                            </Button>
+                          ) : (
+                            <Button
+                              danger
+                              icon={<StopOutlined />}
+                              loading={busy}
+                              onClick={onMarkInvalid}
+                            >
+                              סימון כלא בתוקף
+                            </Button>
+                          )}
+                        </section>
+                      </div>
+                    ),
+                  },
+                ]}
+              />
             </div>
           )}
         </>

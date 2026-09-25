@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircleOutlined, CreditCardOutlined, FileProtectOutlined, SafetyCertificateFilled, WalletOutlined } from "@ant-design/icons";
+import { SafetyCertificateFilled, WalletOutlined } from "@ant-design/icons";
 import { Alert, Button, Select, Space, Spin, Tag, Typography, message } from "antd";
 import { api } from "./api";
 import { CustomerPolicyPanel } from "./components/CustomerPolicyPanel";
@@ -194,27 +194,6 @@ function App() {
         </Tag>
       </header>
 
-      <section className="page-intro">
-        <div>
-          <div className="eyebrow">מרכז שירות דיגיטלי</div>
-          <h1>ניהול כרטיסי לקוחות</h1>
-          <p>הנפקת פוליסות ל־Google Wallet וניהול הכרטיסים במקום אחד.</p>
-        </div>
-        <div className="customer-picker">
-          <label htmlFor="customer-select">לקוח</label>
-          <Select
-            id="customer-select"
-            showSearch
-            optionFilterProp="label"
-            value={selectedCustomerId}
-            onChange={(value) => setSelectedCustomerId(value)}
-            placeholder="בחירת לקוח"
-            options={customers.map((item) => ({ value: item.id, label: item.name }))}
-            disabled={loading || customers.length === 0}
-          />
-        </div>
-      </section>
-
       {!walletReady && !loading && (
         <Alert
           className="setup-alert"
@@ -241,33 +220,15 @@ function App() {
         />
       )}
 
-      {!loading && customer && (
-        <section className="overview-grid" aria-label="סיכום לקוח">
-          <div className="overview-card">
-            <span className="overview-icon"><FileProtectOutlined /></span>
-            <div><span>פוליסות ללקוח</span><strong>{policies.length}</strong></div>
-          </div>
-          <div className="overview-card">
-            <span className="overview-icon blue"><CreditCardOutlined /></span>
-            <div><span>כרטיסים בארנק</span><strong>{cards.length}</strong></div>
-          </div>
-          <div className="overview-card">
-            <span className="overview-icon green"><CheckCircleOutlined /></span>
-            <div><span>כרטיסים פעילים</span><strong>{cards.filter((card) => card.state === "ACTIVE" && !card.isMarkedInvalid).length}</strong></div>
-          </div>
-          <div className="overview-customer">
-            <span className="customer-avatar">{customer.name.slice(0, 1)}</span>
-            <div><span>לקוח נבחר</span><strong>{customer.name}</strong><small>{customer.email}</small></div>
-          </div>
-        </section>
-      )}
-
       {loading ? (
         <div className="page-loading"><Spin size="large" /></div>
       ) : (
         <div className="main-grid">
           <CustomerPolicyPanel
+            customers={customers}
             customer={customer}
+            selectedCustomerId={selectedCustomerId}
+            onCustomerChange={setSelectedCustomerId}
             policies={policies}
             selectedIds={selectedPolicyIds}
             loading={customerLoading}
