@@ -12,12 +12,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       locale={heIL}
       theme={{
         token: {
-          colorPrimary: "#e46840",
+          colorPrimary: "#1767ab",
           colorInfo: "#4073a8",
           colorSuccess: "#35856f",
           borderRadius: 10,
-          fontFamily: "Arial, 'Noto Sans Hebrew', sans-serif",
-          controlHeight: 40,
+          fontFamily: "Heebo, Arial, 'Noto Sans Hebrew', sans-serif",
+          controlHeight: 42,
         },
       }}
     >

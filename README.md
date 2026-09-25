@@ -41,6 +41,10 @@
     server/src/services/walletService.ts
     server/src/index.ts
 
+## שמירת כרטיסים שהונפקו
+
+`server/data/issued-cards.json` נשמר כאינדקס קריא לפי לקוח, ובו פרטי תצוגה ומיקום הקובץ. הנתונים המלאים של כל לקוח נשמרים בנפרד תחת `server/data/issued-cards-data/<customerId>.json`. בהפעלה הראשונה אחרי השדרוג, מערך הכרטיסים הישן ב־`issued-cards.json` מועבר אוטומטית למבנה החדש. קובצי הנתונים המקומיים מוחרגים מ־Git.
+
 ## נתיבי API
 
 | Method | Route | פעולה |

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SafetyCertificateFilled, WalletOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined, CreditCardOutlined, FileProtectOutlined, SafetyCertificateFilled, WalletOutlined } from "@ant-design/icons";
 import { Alert, Button, Select, Space, Spin, Tag, Typography, message } from "antd";
 import { api } from "./api";
 import { CustomerPolicyPanel } from "./components/CustomerPolicyPanel";
@@ -196,8 +196,9 @@ function App() {
 
       <section className="page-intro">
         <div>
-          <h1>כרטיסי לקוחות</h1>
-          <p>בחרו לקוח ופוליסות, או עדכנו כרטיס שכבר הונפק.</p>
+          <div className="eyebrow">מרכז שירות דיגיטלי</div>
+          <h1>ניהול כרטיסי לקוחות</h1>
+          <p>הנפקת פוליסות ל־Google Wallet וניהול הכרטיסים במקום אחד.</p>
         </div>
         <div className="customer-picker">
           <label htmlFor="customer-select">לקוח</label>
@@ -238,6 +239,27 @@ function App() {
             </div>
           }
         />
+      )}
+
+      {!loading && customer && (
+        <section className="overview-grid" aria-label="סיכום לקוח">
+          <div className="overview-card">
+            <span className="overview-icon"><FileProtectOutlined /></span>
+            <div><span>פוליסות ללקוח</span><strong>{policies.length}</strong></div>
+          </div>
+          <div className="overview-card">
+            <span className="overview-icon blue"><CreditCardOutlined /></span>
+            <div><span>כרטיסים בארנק</span><strong>{cards.length}</strong></div>
+          </div>
+          <div className="overview-card">
+            <span className="overview-icon green"><CheckCircleOutlined /></span>
+            <div><span>כרטיסים פעילים</span><strong>{cards.filter((card) => card.state === "ACTIVE" && !card.isMarkedInvalid).length}</strong></div>
+          </div>
+          <div className="overview-customer">
+            <span className="customer-avatar">{customer.name.slice(0, 1)}</span>
+            <div><span>לקוח נבחר</span><strong>{customer.name}</strong><small>{customer.email}</small></div>
+          </div>
+        </section>
       )}
 
       {loading ? (
