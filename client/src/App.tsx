@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { SafetyCertificateFilled, WalletOutlined } from "@ant-design/icons";
-import { Alert, Button, Select, Space, Spin, Tag, Typography, message } from "antd";
+import { WalletOutlined } from "@ant-design/icons";
+import { Alert, Button, Select, Space, Spin, Typography, message } from "antd";
 import { api } from "./api";
 import { CustomerPolicyPanel } from "./components/CustomerPolicyPanel";
 import { WalletCardsPanel } from "./components/WalletCardsPanel";
-import type { Customer, IssueResult, Policy, WalletCard, WalletTextField } from "./types";
+import type { Customer, IssueResult, Policy, WalletCard, WalletLinkType, WalletTextField } from "./types";
 
 const { Text } = Typography;
 
@@ -140,6 +140,31 @@ function App() {
     "הודעת Wallet נשלחה",
   );
 
+  const handleDeleteMessage = (messageIndex: number) => withAction(
+    async () => { if (selectedObjectId) await api.deleteMessage(selectedObjectId, messageIndex); },
+    "ההודעה הוסרה מהכרטיס",
+  );
+
+  const handleAddWalletLink = (description: string, linkType: WalletLinkType, value: string) => withAction(
+    async () => { if (selectedObjectId) await api.addWalletLink(selectedObjectId, description, linkType, value); },
+    "הקישור נוסף לכרטיס Google Wallet",
+  );
+
+  const handleDeleteWalletLink = (linkIndex: number) => withAction(
+    async () => { if (selectedObjectId) await api.deleteWalletLink(selectedObjectId, linkIndex); },
+    "הקישור הוסר מהכרטיס",
+  );
+
+  const handleDeleteAllWalletLinks = () => withAction(
+    async () => { if (selectedObjectId) await api.deleteAllWalletLinks(selectedObjectId); },
+    "כל הקישורים הוסרו מהכרטיס",
+  );
+
+  const handleMoveWalletLink = (fromIndex: number, toIndex: number) => withAction(
+    async () => { if (selectedObjectId) await api.moveWalletLink(selectedObjectId, fromIndex, toIndex); },
+    "סדר הקישורים עודכן בכרטיס",
+  );
+
   const handleUpdate = (header: string, subheader: string) => withAction(
     async () => { if (selectedObjectId) await api.updateCard(selectedObjectId, header, subheader); },
     "הכרטיס עודכן",
@@ -184,16 +209,7 @@ function App() {
   return (
     <main className="app-page" dir="rtl">
       {contextHolder}
-      <header className="app-header">
-        <div className="brand">
-          <span className="brand-icon"><SafetyCertificateFilled /></span>
-          <div><strong>ביטוח ישיר</strong><small>ניהול כרטיסי Google Wallet</small></div>
-        </div>
-        <Tag color={walletReady ? "green" : "red"}>
-          {walletReady ? "Google Wallet מחובר" : "Google Wallet לא זמין"}
-        </Tag>
-      </header>
-
+      <div className="page-title"><WalletOutlined /><h1>מערכת ארנק דיגיטלית</h1></div>
       {!walletReady && !loading && (
         <Alert
           className="setup-alert"
@@ -246,6 +262,11 @@ function App() {
             selectedObjectId={selectedObjectId}
             onSelect={setSelectedObjectId}
             onMessage={handleMessage}
+            onDeleteMessage={handleDeleteMessage}
+            onAddWalletLink={handleAddWalletLink}
+            onDeleteWalletLink={handleDeleteWalletLink}
+            onDeleteAllWalletLinks={handleDeleteAllWalletLinks}
+            onMoveWalletLink={handleMoveWalletLink}
             onUpdate={handleUpdate}
             onFieldsChange={setCardFields}
             onSaveFields={handleSaveFields}

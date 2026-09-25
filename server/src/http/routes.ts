@@ -21,6 +21,44 @@ function requireObjectId(request: Request, response: Response): string | undefin
   return objectId;
 }
 
+function normalizeWalletLinkUri(linkType: unknown, rawValue: unknown): { uri?: string; error?: string } {
+  const value = typeof rawValue === "string" ? rawValue.trim() : "";
+  if (!value || value.length > 1500) return { error: "יש להזין ערך קישור תקין." };
+
+  if (linkType === "website") {
+    try {
+      const parsed = new URL(value);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return { error: "כתובת אתר חייבת להתחיל ב־http:// או https://." };
+      return { uri: parsed.toString() };
+    } catch {
+      return { error: "יש להזין כתובת אתר מלאה, כולל https://." };
+    }
+  }
+
+  if (linkType === "phone") {
+    const phone = value.replace(/[\s().-]/g, "");
+    if (!/^(?:\+?\d{5,15}|\*[0-9]{3,15})$/.test(phone)) return { error: "יש להזין מספר טלפון או קוד חיוג כמו ‎*5555‎." };
+    return { uri: "tel:" + phone };
+  }
+
+  if (linkType === "email") {
+    if (value.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return { error: "יש להזין כתובת אימייל תקינה." };
+    return { uri: "mailto:" + value };
+  }
+
+  if (linkType === "navigation") {
+    if (/^https?:\/\//i.test(value)) {
+      try {
+        const parsed = new URL(value);
+        if (parsed.protocol === "http:" || parsed.protocol === "https:") return { uri: parsed.toString() };
+      } catch { /* Treat non-URL input as a destination address below. */ }
+    }
+    return { uri: "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(value) };
+  }
+
+  return { error: "יש לבחור סוג קישור: אתר, טלפון, אימייל או ניווט." };
+}
+
 export function createApiRouter(repository: IssuedCardRepository, wallet: WalletService) {
   const router = Router();
 
@@ -105,6 +143,74 @@ export function createApiRouter(repository: IssuedCardRepository, wallet: Wallet
     return response.json({ ok: true, objectId, header: header.trim(), messageType: "TEXT_AND_NOTIFY" });
   }));
 
+  router.delete("/wallet/objects/:objectId/messages/:messageIndex", asyncRoute(async (request, response) => {
+    const objectId = requireObjectId(request, response);
+    if (!objectId) return;
+    const rawIndex = request.params.messageIndex;
+    if (typeof rawIndex !== "string" || !/^\d+$/.test(rawIndex)) {
+      return response.status(400).json({ error: "מזהה הודעה לא תקין." });
+    }
+    const messageIndex = Number(rawIndex);
+    const card = repository.get(objectId);
+    if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
+    await wallet.removeMessage(objectId, messageIndex);
+    return response.json({ ok: true, objectId, deletedIndex: messageIndex });
+  }));
+
+  router.post("/wallet/objects/:objectId/links", asyncRoute(async (request, response) => {
+    const objectId = requireObjectId(request, response);
+    if (!objectId) return;
+    const card = repository.get(objectId);
+    if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
+    const { description: rawDescription, linkType, value } = request.body as { description?: unknown; linkType?: unknown; value?: unknown };
+    const description = typeof rawDescription === "string" ? rawDescription.trim() : "";
+    if (!description || description.length > 20) {
+      return response.status(400).json({ error: "יש להזין טקסט קישור באורך 1–20 תווים." });
+    }
+    const normalized = normalizeWalletLinkUri(linkType, value);
+    if (!normalized.uri || normalized.uri.length > 2048) {
+      return response.status(400).json({ error: normalized.error ?? "כתובת הקישור ארוכה מדי." });
+    }
+    const updated = await wallet.addLink(objectId, description, normalized.uri);
+    return response.json({ ok: true, objectId, description, uri: normalized.uri, updated });
+  }));
+
+  router.delete("/wallet/objects/:objectId/links", asyncRoute(async (request, response) => {
+    const objectId = requireObjectId(request, response);
+    if (!objectId) return;
+    const card = repository.get(objectId);
+    if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
+    await wallet.removeAllLinks(objectId);
+    return response.json({ ok: true, objectId, deletedAll: true });
+  }));
+
+  router.delete("/wallet/objects/:objectId/links/:linkIndex", asyncRoute(async (request, response) => {
+    const objectId = requireObjectId(request, response);
+    if (!objectId) return;
+    const rawIndex = request.params.linkIndex;
+    if (typeof rawIndex !== "string" || !/^\d+$/.test(rawIndex)) {
+      return response.status(400).json({ error: "מזהה קישור לא תקין." });
+    }
+    const card = repository.get(objectId);
+    if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
+    const linkIndex = Number(rawIndex);
+    await wallet.removeLink(objectId, linkIndex);
+    return response.json({ ok: true, objectId, deletedIndex: linkIndex });
+  }));
+
+  router.patch("/wallet/objects/:objectId/links/reorder", asyncRoute(async (request, response) => {
+    const objectId = requireObjectId(request, response);
+    if (!objectId) return;
+    const { fromIndex, toIndex } = request.body as { fromIndex?: unknown; toIndex?: unknown };
+    if (!Number.isInteger(fromIndex) || !Number.isInteger(toIndex)) {
+      return response.status(400).json({ error: "יש לשלוח את מיקום הקישור הנוכחי והחדש." });
+    }
+    const card = repository.get(objectId);
+    if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
+    await wallet.moveLink(objectId, fromIndex as number, toIndex as number);
+    return response.json({ ok: true, objectId, fromIndex, toIndex });
+  }));
+
   router.patch("/wallet/objects/:objectId", asyncRoute(async (request, response) => {
     const objectId = requireObjectId(request, response);
     if (!objectId) return;
@@ -134,6 +240,14 @@ export function createApiRouter(repository: IssuedCardRepository, wallet: Wallet
     const card = repository.get(objectId);
     if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
     return response.json({ fields: await wallet.getTextFields(objectId) });
+  }));
+
+  router.get("/wallet/objects/:objectId/google", asyncRoute(async (request, response) => {
+    const objectId = requireObjectId(request, response);
+    if (!objectId) return;
+    const card = repository.get(objectId);
+    if (!card || card.provider !== "google") return response.status(404).json({ error: "הכרטיס לא קיים ב-Google Wallet." });
+    return response.json({ object: await wallet.getWalletObject(objectId) });
   }));
 
   router.patch("/wallet/objects/:objectId/fields", asyncRoute(async (request, response) => {

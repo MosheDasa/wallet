@@ -112,6 +112,12 @@ export class WalletService {
     }));
   }
 
+  async getWalletObject(objectId: string): Promise<Record<string, unknown>> {
+    this.assertObjectId(objectId);
+    const response = await this.walletRequest("GET", "/genericObject/" + encodeURIComponent(objectId));
+    return response.data as Record<string, unknown>;
+  }
+
   async updateTextFields(objectId: string, fields: WalletTextField[]): Promise<unknown> {
     return this.patchObject(objectId, { textModulesData: fields });
   }
@@ -144,6 +150,80 @@ export class WalletService {
       { message },
     );
     return response.data;
+  }
+
+  async removeMessage(objectId: string, messageIndex: number): Promise<unknown> {
+    const current = await this.getWalletObject(objectId);
+    const messages = Array.isArray(current.messages) ? current.messages : [];
+    if (!Number.isInteger(messageIndex) || messageIndex < 0 || messageIndex >= messages.length) {
+      const error = new Error("ההודעה כבר לא קיימת בכרטיס.") as Error & { status?: number };
+      error.status = 404;
+      throw error;
+    }
+    const updatedMessages = messages.filter((_, index) => index !== messageIndex);
+    return this.patchObject(objectId, { messages: updatedMessages });
+  }
+
+  async addLink(objectId: string, description: string, uri: string): Promise<unknown> {
+    const current = await this.getWalletObject(objectId);
+    const existingModule = current.linksModuleData && typeof current.linksModuleData === "object"
+      ? current.linksModuleData as Record<string, unknown>
+      : {};
+    const existingUris = Array.isArray(existingModule.uris) ? existingModule.uris : [];
+    if (existingUris.length >= 10) {
+      const error = new Error("ניתן להוסיף עד 10 קישורים לכרטיס.") as Error & { status?: number };
+      error.status = 400;
+      throw error;
+    }
+    const newLink = {
+      id: "link_" + randomUUID().replaceAll("-", ""),
+      description,
+      uri,
+    };
+    return this.patchObject(objectId, {
+      linksModuleData: { ...existingModule, uris: [...existingUris, newLink] },
+    });
+  }
+
+  async removeLink(objectId: string, linkIndex: number): Promise<unknown> {
+    const current = await this.getWalletObject(objectId);
+    const existingModule = current.linksModuleData && typeof current.linksModuleData === "object"
+      ? current.linksModuleData as Record<string, unknown>
+      : {};
+    const existingUris = Array.isArray(existingModule.uris) ? existingModule.uris : [];
+    if (!Number.isInteger(linkIndex) || linkIndex < 0 || linkIndex >= existingUris.length) {
+      const error = new Error("הקישור כבר לא קיים בכרטיס.") as Error & { status?: number };
+      error.status = 404;
+      throw error;
+    }
+    const uris = existingUris.filter((_, index) => index !== linkIndex);
+    return this.patchObject(objectId, { linksModuleData: { ...existingModule, uris } });
+  }
+
+  async removeAllLinks(objectId: string): Promise<unknown> {
+    const current = await this.getWalletObject(objectId);
+    const existingModule = current.linksModuleData && typeof current.linksModuleData === "object"
+      ? current.linksModuleData as Record<string, unknown>
+      : {};
+    return this.patchObject(objectId, { linksModuleData: { ...existingModule, uris: [] } });
+  }
+
+  async moveLink(objectId: string, fromIndex: number, toIndex: number): Promise<unknown> {
+    const current = await this.getWalletObject(objectId);
+    const existingModule = current.linksModuleData && typeof current.linksModuleData === "object"
+      ? current.linksModuleData as Record<string, unknown>
+      : {};
+    const existingUris = Array.isArray(existingModule.uris) ? [...existingModule.uris] : [];
+    if (!Number.isInteger(fromIndex) || !Number.isInteger(toIndex)
+      || fromIndex < 0 || fromIndex >= existingUris.length
+      || toIndex < 0 || toIndex >= existingUris.length) {
+      const error = new Error("מיקום הקישור אינו תקין.") as Error & { status?: number };
+      error.status = 400;
+      throw error;
+    }
+    const [link] = existingUris.splice(fromIndex, 1);
+    existingUris.splice(toIndex, 0, link);
+    return this.patchObject(objectId, { linksModuleData: { ...existingModule, uris: existingUris } });
   }
 
   async markObjectNotValid(card: IssuedCard): Promise<unknown> {
@@ -189,10 +269,25 @@ export class WalletService {
 
   async sendCarRenewal(objectId: string, header: string): Promise<{ object: unknown; renewalUrl: string }> {
     this.assertObjectId(objectId);
+    const current = await this.getWalletObject(objectId);
+    const existingModule = current.linksModuleData && typeof current.linksModuleData === "object"
+      ? current.linksModuleData as Record<string, unknown>
+      : {};
+    const existingUris = Array.isArray(existingModule.uris) ? existingModule.uris : [];
+    const renewalLinkIndex = existingUris.findIndex((item) =>
+      Boolean(item && typeof item === "object" && "uri" in item && item.uri === config.renewalUrl),
+    );
+    if (renewalLinkIndex < 0 && existingUris.length >= 10) {
+      const error = new Error("לא ניתן להוסיף קישור חידוש: הכרטיס כבר מכיל 10 קישורים.") as Error & { status?: number };
+      error.status = 400;
+      throw error;
+    }
+    const renewalLink = { id: "car-renewal", uri: config.renewalUrl, description: "לחץ כאן" };
+    const renewalUris = [...existingUris];
+    if (renewalLinkIndex >= 0) renewalUris[renewalLinkIndex] = { ...renewalUris[renewalLinkIndex], ...renewalLink };
+    else renewalUris.push(renewalLink);
     const objectPatch = {
-      linksModuleData: {
-        uris: [{ uri: config.renewalUrl, description: "לחץ כאן" }],
-      },
+      linksModuleData: { ...existingModule, uris: renewalUris },
     };
     const [object] = await Promise.all([
       this.patchObject(objectId, objectPatch),

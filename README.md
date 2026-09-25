@@ -53,8 +53,14 @@
 | GET | /api/customers | רשימת לקוחות |
 | GET | /api/customers/:customerId/policies | פוליסות של לקוח |
 | GET | /api/wallet/customers/:customerId/cards | כרטיסים שנרשמו במערכת |
+| GET | /api/wallet/objects/:objectId/google | אובייקט הכרטיס כפי שהוא נשמר ב־Google Wallet |
 | POST | /api/wallet/issue | יצירת כרטיסים וקישור שמירה מקובץ |
 | POST | /api/wallet/objects/:objectId/messages | הודעת Wallet והתראת Android |
+| DELETE | /api/wallet/objects/:objectId/messages/:messageIndex | הסרת הודעה מהכרטיס ב־Google Wallet |
+| POST | /api/wallet/objects/:objectId/links | הוספת קישור ל־linksModuleData בכרטיס |
+| DELETE | /api/wallet/objects/:objectId/links | מחיקת כל הקישורים מהכרטיס |
+| DELETE | /api/wallet/objects/:objectId/links/:linkIndex | מחיקת קישור מהכרטיס |
+| PATCH | /api/wallet/objects/:objectId/links/reorder | שינוי סדר הקישורים בכרטיס |
 | PATCH | /api/wallet/objects/:objectId | עדכון כותרת, שורת משנה או צבע |
 | POST | /api/wallet/objects/:objectId/expire | סימון כרטיס כפג תוקף |
 | POST | /api/wallet/objects/:objectId/car-renewal | הודעת חידוש ועדכון קישור הרכב |

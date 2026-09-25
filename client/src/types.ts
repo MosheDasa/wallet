@@ -7,6 +7,8 @@ export interface WalletTextField {
   body: string;
 }
 
+export type WalletLinkType = "website" | "phone" | "email" | "navigation";
+
 export interface Customer {
   id: string;
   name: string;

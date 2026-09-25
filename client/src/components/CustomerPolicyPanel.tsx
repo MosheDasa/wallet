@@ -38,7 +38,15 @@ export function CustomerPolicyPanel({
       <div className="panel-heading">
         <div className="step-number">1</div>
         <div>
-          <h2>בחרו פוליסות</h2>
+          <h2 className="policy-panel-title">
+            בחרו פוליסות
+            <span
+              className={`wallet-connection-light ${walletReady ? "connected" : "disconnected"}`}
+              role="status"
+              aria-label={walletReady ? "Google Wallet מחובר" : "Google Wallet לא זמין"}
+              title={walletReady ? "Google Wallet מחובר" : "Google Wallet לא זמין"}
+            />
+          </h2>
         </div>
         <Tag>{policies.length}</Tag>
       </div>

@@ -1,0 +1,286 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-25T14:05:39.585Z",
+  "customers": [
+    {
+      "customerId": "customer-1002",
+      "file": "issued-cards-data/customer-1002.json",
+      "cardCount": 6,
+      "cards": [
+        {
+          "objectId": "3388000000023203786.policy-auto-1002_af6eefc3fa78",
+          "customerId": "customer-1002",
+          "policyId": "policy-auto-1002",
+          "policyType": "auto",
+          "policyName": "ביטוח רכב",
+          "policyNumber": "רכב · 4582107",
+          "description": "טויוטה קורולה · 2022",
+          "issuedAt": "2026-09-25T06:32:38.640Z",
+          "state": "EXPIRED"
+        },
+        {
+          "objectId": "3388000000023203786.policy-home-1002_e1bd1468368c",
+          "customerId": "customer-1002",
+          "policyId": "policy-home-1002",
+          "policyType": "home",
+          "policyName": "ביטוח דירה",
+          "policyNumber": "דירה · 7710942",
+          "description": "דירת 4 חדרים · תל אביב",
+          "issuedAt": "2026-09-25T06:32:38.641Z",
+          "state": "EXPIRED"
+        },
+        {
+          "objectId": "3388000000023203786.policy-health-1002_4b1ee9b58106",
+          "customerId": "customer-1002",
+          "policyId": "policy-health-1002",
+          "policyType": "health",
+          "policyName": "ביטוח בריאות",
+          "policyNumber": "בריאות · 3205841",
+          "description": "כיסוי בריאות פרטי",
+          "issuedAt": "2026-09-25T06:32:38.641Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-auto-1002_dce06373bec9",
+          "customerId": "customer-1002",
+          "policyId": "policy-auto-1002",
+          "policyType": "auto",
+          "policyName": "ביטוח רכב",
+          "policyNumber": "רכב · 4582107",
+          "description": "טויוטה קורולה · 2022",
+          "issuedAt": "2026-09-25T06:45:21.828Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-home-1002_c198f21143c2",
+          "customerId": "customer-1002",
+          "policyId": "policy-home-1002",
+          "policyType": "home",
+          "policyName": "ביטוח דירה",
+          "policyNumber": "דירה · 7710942",
+          "description": "דירת 4 חדרים · תל אביב",
+          "issuedAt": "2026-09-25T06:45:21.829Z",
+          "state": "EXPIRED"
+        },
+        {
+          "objectId": "3388000000023203786.policy-health-1002_8028712f1032",
+          "customerId": "customer-1002",
+          "policyId": "policy-health-1002",
+          "policyType": "health",
+          "policyName": "ביטוח בריאות",
+          "policyNumber": "בריאות · 3205841",
+          "description": "כיסוי בריאות פרטי",
+          "issuedAt": "2026-09-25T06:45:21.829Z",
+          "state": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "customerId": "customer-moshe-dasa",
+      "file": "issued-cards-data/customer-moshe-dasa.json",
+      "cardCount": 18,
+      "cards": [
+        {
+          "objectId": "3388000000023203786.policy-auto-moshe-dasa_v1_a1bb22307a59",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-auto-moshe-dasa",
+          "policyType": "auto",
+          "policyName": "ביטוח רכב",
+          "policyNumber": "רכב · 5284176",
+          "description": "יונדאי טוסון · 2023",
+          "issuedAt": "2026-09-25T07:07:30.102Z",
+          "state": "ACTIVE",
+          "isMarkedInvalid": true
+        },
+        {
+          "objectId": "3388000000023203786.policy-home-moshe-dasa_v1_a32bc54bf3e0a",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-home-moshe-dasa",
+          "policyType": "home",
+          "policyName": "ביטוח דירה",
+          "policyNumber": "דירה · 7346102",
+          "description": "דירת 4 חדרים · ירושלים",
+          "issuedAt": "2026-09-25T07:07:30.102Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-mortgage-moshe-dasa_v1_86a15999521c",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-mortgage-moshe-dasa",
+          "policyType": "mortgage",
+          "policyName": "ביטוח משכנתא",
+          "policyNumber": "משכנתא · 1649028",
+          "description": "ביטוח חיים למשכנתא",
+          "issuedAt": "2026-09-25T07:07:30.102Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-savings-moshe-dasa_v1_8bba4695944c",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-savings-moshe-dasa",
+          "policyType": "savings",
+          "policyName": "חיסכון ישיר",
+          "policyNumber": "חיסכון · 9831574",
+          "description": "תוכנית חיסכון ישיר",
+          "issuedAt": "2026-09-25T07:07:30.102Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-health-moshe-dasa_v1_20b07c6ca951",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-health-moshe-dasa",
+          "policyType": "health",
+          "policyName": "ביטוח בריאות",
+          "policyNumber": "בריאות · 6152840",
+          "description": "כיסוי בריאות פרטי ומשפחתי",
+          "issuedAt": "2026-09-25T07:07:30.102Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-life-moshe-dasa_v1_cb76fb1df675",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-life-moshe-dasa",
+          "policyType": "life",
+          "policyName": "ביטוח חיים",
+          "policyNumber": "חיים · 4073916",
+          "description": "ביטוח חיים למשפחה",
+          "issuedAt": "2026-09-25T07:07:30.102Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-auto-moshe-dasa_v1_fda0cc4b8fce",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-auto-moshe-dasa",
+          "policyType": "auto",
+          "policyName": "ביטוח רכב",
+          "policyNumber": "רכב · 5284176",
+          "description": "יונדאי טוסון · 2023",
+          "issuedAt": "2026-09-25T07:26:16.202Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-home-moshe-dasa_v1_182f83497784",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-home-moshe-dasa",
+          "policyType": "home",
+          "policyName": "ביטוח דירה",
+          "policyNumber": "דירה · 7346102",
+          "description": "דירת 4 חדרים · ירושלים",
+          "issuedAt": "2026-09-25T07:26:16.202Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-mortgage-moshe-dasa_v1_12393d7d201e",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-mortgage-moshe-dasa",
+          "policyType": "mortgage",
+          "policyName": "ביטוח משכנתא",
+          "policyNumber": "משכנתא · 1649028",
+          "description": "ביטוח חיים למשכנתא",
+          "issuedAt": "2026-09-25T07:26:16.202Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-savings-moshe-dasa_v1_39d2b77da41a",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-savings-moshe-dasa",
+          "policyType": "savings",
+          "policyName": "חיסכון ישיר",
+          "policyNumber": "חיסכון · 9831574",
+          "description": "תוכנית חיסכון ישיר",
+          "issuedAt": "2026-09-25T07:26:16.202Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-health-moshe-dasa_v1_7da30d9a6963",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-health-moshe-dasa",
+          "policyType": "health",
+          "policyName": "ביטוח בריאות",
+          "policyNumber": "בריאות · 6152840",
+          "description": "כיסוי בריאות פרטי ומשפחתי",
+          "issuedAt": "2026-09-25T07:26:16.202Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-life-moshe-dasa_v1_39357daa5488",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-life-moshe-dasa",
+          "policyType": "life",
+          "policyName": "ביטוח חיים",
+          "policyNumber": "חיים · 4073916",
+          "description": "ביטוח חיים למשפחה",
+          "issuedAt": "2026-09-25T07:26:16.202Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-auto-moshe-dasa_6e0df7f20fcc",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-auto-moshe-dasa",
+          "policyType": "auto",
+          "policyName": "ביטוח רכב",
+          "policyNumber": "רכב · 5284176",
+          "description": "יונדאי טוסון · 2023",
+          "issuedAt": "2026-09-25T07:45:24.671Z",
+          "state": "ACTIVE",
+          "isMarkedInvalid": false
+        },
+        {
+          "objectId": "3388000000023203786.policy-home-moshe-dasa_86b33f8217b3",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-home-moshe-dasa",
+          "policyType": "home",
+          "policyName": "ביטוח דירה",
+          "policyNumber": "דירה · 7346102",
+          "description": "דירת 4 חדרים · ירושלים",
+          "issuedAt": "2026-09-25T07:45:24.671Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-mortgage-moshe-dasa_392b2ca1d163",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-mortgage-moshe-dasa",
+          "policyType": "mortgage",
+          "policyName": "ביטוח משכנתא",
+          "policyNumber": "משכנתא · 1649028",
+          "description": "ביטוח חיים למשכנתא",
+          "issuedAt": "2026-09-25T07:45:24.671Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-savings-moshe-dasa_1a6e14c0174a",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-savings-moshe-dasa",
+          "policyType": "savings",
+          "policyName": "חיסכון ישיר",
+          "policyNumber": "חיסכון · 9831574",
+          "description": "תוכנית חיסכון ישיר",
+          "issuedAt": "2026-09-25T07:45:24.671Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-health-moshe-dasa_183a8e4dca6b",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-health-moshe-dasa",
+          "policyType": "health",
+          "policyName": "ביטוח בריאות",
+          "policyNumber": "בריאות · 6152840",
+          "description": "כיסוי בריאות פרטי ומשפחתי",
+          "issuedAt": "2026-09-25T07:45:24.671Z",
+          "state": "ACTIVE"
+        },
+        {
+          "objectId": "3388000000023203786.policy-life-moshe-dasa_b2e1433b1735",
+          "customerId": "customer-moshe-dasa",
+          "policyId": "policy-life-moshe-dasa",
+          "policyType": "life",
+          "policyName": "ביטוח חיים",
+          "policyNumber": "חיים · 4073916",
+          "description": "ביטוח חיים למשפחה",
+          "issuedAt": "2026-09-25T07:45:24.671Z",
+          "state": "ACTIVE"
+        }
+      ]
+    }
+  ]
+}
