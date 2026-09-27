@@ -50,14 +50,19 @@ export class WalletService {
     }
   }
 
-  async issueGroupedPasses(customer: Customer, policies: Policy[]): Promise<SavePassResult> {
+  async issueGroupedPasses(customer: Customer, policies: Policy[], customerObjectIdNumber?: string): Promise<SavePassResult> {
     this.assertReady();
     if (!policies.length) throw new Error("יש לבחור לפחות פוליסה אחת להנפקה.");
+    if (customerObjectIdNumber && !/^\d{1,20}$/.test(customerObjectIdNumber)) {
+      throw new Error("מספר ה־objectId של הלקוח אינו תקין.");
+    }
 
     const groupingId = this.customerGroupingId(customer.id);
     const cards: IssuedCard[] = policies.map((policy) => {
       const definition = POLICY_TYPE_DEFINITIONS[policy.type];
-      const suffix = safeSuffix(policy.id) + "_" + randomUUID().replaceAll("-", "").slice(0, 12);
+      const suffix = [customerObjectIdNumber, safeSuffix(policy.id), randomUUID().replaceAll("-", "").slice(0, 12)]
+        .filter(Boolean)
+        .join("_");
       return {
         objectId: this.issuerId + "." + suffix,
         classId: this.issuerId + "." + definition.classSuffix,

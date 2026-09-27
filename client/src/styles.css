@@ -62,6 +62,13 @@ button, input, textarea { font: inherit; }
 .selected-card-title { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 11px 13px; border: 1px solid #dcebf8; border-radius: 10px; background: #f4f9fe; }
 .selected-card-title strong { color: #1d4e79; font-size: 14px; }
 .selected-card-title .ant-typography { font-size: 12px; }
+.existing-card-panel-title { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.existing-card-panel-title .ant-btn { color: #61768b; }
+.object-id-settings-form { display: grid; gap: 14px; }
+.object-id-settings-form > div { display: grid; gap: 7px; }
+.object-id-settings-form label { color: #54677a; font-size: 13px; font-weight: 600; }
+.object-id-number-control { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.object-id-settings-form > .ant-btn { justify-self: start; min-width: 100px; }
 .wallet-action-tabs .ant-tabs-nav { margin-bottom: 16px; }
 .wallet-action-tabs .ant-tabs-tab { padding: 11px 8px; color: #6c7f92; font-size: 13px; }
 .wallet-action-tabs .ant-tabs-tab-active .ant-tabs-tab-btn { color: #1767ab; font-weight: 700; }

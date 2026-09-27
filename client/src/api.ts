@@ -14,7 +14,19 @@ export const api = {
   health: () => request<ApiHealth>("/api/health"),
   customers: () => request<Customer[]>("/api/customers"),
   policies: (customerId: string) => request<Policy[]>("/api/customers/" + encodeURIComponent(customerId) + "/policies"),
+  customerObjectIdNumber: (customerId: string) =>
+    request<{ objectIdNumber: string }>("/api/customers/" + encodeURIComponent(customerId) + "/object-id-number"),
+  saveCustomerObjectIdNumber: (customerId: string, objectIdNumber: string) =>
+    request<{ ok: true; customerId: string; objectIdNumber: string }>(
+      "/api/customers/" + encodeURIComponent(customerId) + "/object-id-number",
+      { method: "PUT", body: JSON.stringify({ objectIdNumber }) },
+    ),
   cards: (customerId: string) => request<WalletCard[]>("/api/wallet/customers/" + encodeURIComponent(customerId) + "/cards"),
+  deleteAllCustomerCards: (customerId: string) =>
+    request<{ ok: true; customerId: string; removedLocally: number }>(
+      "/api/wallet/customers/" + encodeURIComponent(customerId) + "/cards",
+      { method: "DELETE" },
+    ),
   fields: (objectId: string) =>
     request<{ fields: WalletTextField[] }>("/api/wallet/objects/" + encodeURIComponent(objectId) + "/fields"),
   googleObject: (objectId: string) =>

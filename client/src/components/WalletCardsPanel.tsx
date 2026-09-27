@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ArrowDownOutlined, ArrowUpOutlined, BellOutlined, CheckCircleOutlined, CodeOutlined, DeleteOutlined, EditOutlined, LinkOutlined, PlusOutlined, ReloadOutlined, SafetyCertificateOutlined, SendOutlined, StopOutlined, ThunderboltOutlined } from "@ant-design/icons";
-import { Alert, Button, Card, Empty, Input, Popconfirm, Select, Spin, Tabs, Tag, Tooltip, Typography } from "antd";
+import { ArrowDownOutlined, ArrowUpOutlined, BellOutlined, CheckCircleOutlined, CodeOutlined, DeleteOutlined, EditOutlined, LinkOutlined, PlusOutlined, ReloadOutlined, SafetyCertificateOutlined, SaveOutlined, SendOutlined, SettingOutlined, StopOutlined, ThunderboltOutlined } from "@ant-design/icons";
+import { Alert, Button, Card, Empty, Input, Modal, Popconfirm, Select, Spin, Tabs, Tag, Tooltip, Typography } from "antd";
 import { api } from "../api";
 import { WALLET_LOGO_URL } from "../branding";
 import type { WalletCard, WalletLinkType, WalletTextField } from "../types";
@@ -30,6 +30,9 @@ function isGoogleWalletLink(value: unknown): value is GoogleWalletLink {
 
 interface Props {
   cards: WalletCard[];
+  customerId?: string;
+  onSaveCustomerObjectIdNumber: (customerId: string, objectIdNumber: string) => Promise<boolean>;
+  onDeleteAllCustomerCards: (customerId: string) => Promise<boolean>;
   fields: WalletTextField[];
   fieldsLoading: boolean;
   loading: boolean;
@@ -51,7 +54,7 @@ interface Props {
 }
 
 export function WalletCardsPanel({
-  cards, fields, fieldsLoading, loading, busy, selectedObjectId, onSelect, onMessage, onDeleteMessage,
+  cards, customerId, onSaveCustomerObjectIdNumber, onDeleteAllCustomerCards, fields, fieldsLoading, loading, busy, selectedObjectId, onSelect, onMessage, onDeleteMessage,
   onAddWalletLink, onDeleteWalletLink, onDeleteAllWalletLinks, onMoveWalletLink, onUpdate,
   onFieldsChange, onSaveFields, onMarkInvalid, onMarkValid, onRenewCar,
 }: Props) {
@@ -67,6 +70,12 @@ export function WalletCardsPanel({
   const [linkDescription, setLinkDescription] = useState("");
   const [linkType, setLinkType] = useState<WalletLinkType>("website");
   const [linkUri, setLinkUri] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsError, setSettingsError] = useState<string>();
+  const [customerObjectIdNumber, setCustomerObjectIdNumber] = useState("");
+  const [objectIdNumberDraft, setObjectIdNumberDraft] = useState("");
   const selectedCard = cards.find((card) => card.objectId === selectedObjectId);
   const cardIsNotValid = (card: WalletCard) => card.isMarkedInvalid === true || card.state !== "ACTIVE";
   const googleMessages = Array.isArray(googleObject?.messages)
@@ -88,6 +97,26 @@ export function WalletCardsPanel({
     setLinkType("website");
     setLinkUri("");
   }, [selectedObjectId]);
+
+  useEffect(() => {
+    let active = true;
+    setCustomerObjectIdNumber("");
+    setObjectIdNumberDraft("");
+    setSettingsError(undefined);
+    if (!customerId) return () => { active = false; };
+    setSettingsLoading(true);
+    api.customerObjectIdNumber(customerId)
+      .then(({ objectIdNumber }) => {
+        if (!active) return;
+        setCustomerObjectIdNumber(objectIdNumber);
+        setObjectIdNumberDraft(objectIdNumber);
+      })
+      .catch((cause) => {
+        if (active) setSettingsError(cause instanceof Error ? cause.message : "לא ניתן לטעון את הגדרת מספר הכרטיס.");
+      })
+      .finally(() => { if (active) setSettingsLoading(false); });
+    return () => { active = false; };
+  }, [customerId]);
 
   const loadGoogleData = async () => {
     if (!selectedObjectId) return;
@@ -137,15 +166,135 @@ export function WalletCardsPanel({
     if (await onMoveWalletLink(fromIndex, toIndex)) await loadGoogleData();
   };
 
+  const handleSaveObjectIdNumber = async () => {
+    if (!customerId) return;
+    const value = objectIdNumberDraft.trim();
+    if (value && !/^\d{1,20}$/.test(value)) {
+      setSettingsError("יש להזין מספר של עד 20 ספרות.");
+      return;
+    }
+    setSettingsSaving(true);
+    setSettingsError(undefined);
+    try {
+      if (await onSaveCustomerObjectIdNumber(customerId, value)) {
+        setCustomerObjectIdNumber(value);
+        setSettingsOpen(false);
+      }
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
+  const incrementObjectIdNumber = () => {
+    const current = objectIdNumberDraft.trim();
+    if (current && !/^\d+$/.test(current)) {
+      setSettingsError("יש להזין ספרות בלבד.");
+      return;
+    }
+    const digits = [...(current || "0")];
+    let carry = 1;
+    for (let index = digits.length - 1; index >= 0 && carry; index -= 1) {
+      const value = Number(digits[index]) + carry;
+      digits[index] = String(value % 10);
+      carry = Math.floor(value / 10);
+    }
+    if (carry) digits.unshift("1");
+    const next = digits.join("");
+    if (next.length > 20) {
+      setSettingsError("המספר לא יכול לעלות על 20 ספרות.");
+      return;
+    }
+    setSettingsError(undefined);
+    setObjectIdNumberDraft(next);
+  };
+
   return (
     <Card className="simple-card" bordered={false} loading={loading}>
       <div className="panel-heading">
         <div className="step-number secondary-step">2</div>
         <div>
-          <h2>ניהול כרטיס קיים</h2>
+          <h2 className="existing-card-panel-title">
+            ניהול כרטיס קיים
+            <Tooltip title="הגדרות מזהה כרטיס ללקוח">
+              <Button
+                type="text"
+                size="small"
+                aria-label="הגדרות מזהה כרטיס ללקוח"
+                icon={<SettingOutlined />}
+                disabled={!customerId || settingsLoading}
+                onClick={() => {
+                  setObjectIdNumberDraft(customerObjectIdNumber);
+                  setSettingsError(undefined);
+                  setSettingsOpen(true);
+                }}
+              />
+            </Tooltip>
+          </h2>
         </div>
         <Tag>{cards.length}</Tag>
+        <Popconfirm
+          title="למחוק את כל הכרטיסים של הלקוח הנבחר?"
+          description="הפעולה תנקה את רישומי הלקוח מהמערכת. Google Wallet API אינו מוחק כרטיסים מהארנק עצמו."
+          okText="מחיקת כל הכרטיסים"
+          cancelText="ביטול"
+          okButtonProps={{ danger: true }}
+          onConfirm={() => customerId && void onDeleteAllCustomerCards(customerId)}
+        >
+          <Button
+            danger
+            size="small"
+            icon={<DeleteOutlined />}
+            disabled={!customerId || cards.length === 0 || busy}
+          >
+            מחיקת כל הכרטיסים
+          </Button>
+        </Popconfirm>
       </div>
+
+      <Modal
+        title="הגדרת מספר מזהה ללקוח"
+        open={settingsOpen}
+        onCancel={() => setSettingsOpen(false)}
+        footer={null}
+        destroyOnClose
+      >
+        <div className="object-id-settings-form">
+          <Text type="secondary">
+            המספר יצורף ל־objectId של כרטיסים שיונפקו מעתה ללקוח. מזהים של כרטיסים קיימים ב־Google Wallet אינם משתנים.
+          </Text>
+          <div>
+            <label htmlFor="customer-object-id-number">מספר ל־objectId</label>
+            <div className="object-id-number-control">
+              <Input
+                id="customer-object-id-number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={20}
+                value={objectIdNumberDraft}
+                onChange={(event) => {
+                  setObjectIdNumberDraft(event.target.value);
+                  setSettingsError(undefined);
+                }}
+                placeholder="למשל: 12345"
+                disabled={settingsSaving}
+              />
+              <Tooltip title="הגדלת המספר באחד">
+                <Button
+                  aria-label="הגדלת המספר באחד"
+                  icon={<ArrowUpOutlined />}
+                  onClick={incrementObjectIdNumber}
+                  disabled={settingsSaving}
+                />
+              </Tooltip>
+            </div>
+          </div>
+          {settingsError && <Alert type="error" showIcon message={settingsError} />}
+          <Button type="primary" icon={<SaveOutlined />} loading={settingsSaving} onClick={() => void handleSaveObjectIdNumber()}>
+            שמור
+          </Button>
+        </div>
+      </Modal>
 
       {cards.length === 0 ? (
         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="עדיין לא הונפקו כרטיסים ללקוח הזה" />

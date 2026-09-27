@@ -23,13 +23,18 @@ interface IssuedCardsIndex {
 export class IssuedCardRepository {
   private cards = new Map<string, IssuedCard>();
   private writeQueue: Promise<void> = Promise.resolve();
+  private settingsWriteQueue: Promise<void> = Promise.resolve();
+  private customerObjectIdNumbers = new Map<string, string>();
   private readonly customerDataDirectory: string;
+  private readonly customerObjectIdNumbersPath: string;
 
   constructor(private readonly filePath: string) {
     this.customerDataDirectory = path.join(path.dirname(filePath), "issued-cards-data");
+    this.customerObjectIdNumbersPath = path.join(path.dirname(filePath), "customer-object-id-numbers.json");
   }
 
   async initialize(): Promise<void> {
+    await this.loadCustomerObjectIdNumbers();
     let index: unknown;
     let hasIndex = false;
     try {
@@ -78,9 +83,36 @@ export class IssuedCardRepository {
     return card?.provider === "google" ? card : undefined;
   }
 
+  getCustomerObjectIdNumber(customerId: string): string | undefined {
+    return this.customerObjectIdNumbers.get(customerId);
+  }
+
+  async setCustomerObjectIdNumber(customerId: string, value: string): Promise<void> {
+    if (value && !/^\d{1,20}$/.test(value)) {
+      throw new Error("המספר חייב להכיל 1–20 ספרות.");
+    }
+    const nextWrite = this.settingsWriteQueue.catch(() => undefined).then(async () => {
+      const next = new Map(this.customerObjectIdNumbers);
+      if (value) next.set(customerId, value);
+      else next.delete(customerId);
+      await fs.mkdir(path.dirname(this.customerObjectIdNumbersPath), { recursive: true });
+      await this.writeAtomically(this.customerObjectIdNumbersPath, JSON.stringify(Object.fromEntries(next), null, 2));
+      this.customerObjectIdNumbers = next;
+    });
+    this.settingsWriteQueue = nextWrite;
+    await nextWrite;
+  }
+
   async addMany(cards: IssuedCard[]): Promise<void> {
     for (const card of cards) this.cards.set(card.objectId, card);
     await this.persist();
+  }
+
+  async removeForCustomer(customerId: string): Promise<number> {
+    const cards = this.listForCustomer(customerId);
+    for (const card of cards) this.cards.delete(card.objectId);
+    await this.persist();
+    return cards.length;
   }
 
   async updateState(objectId: string, state: WalletState): Promise<IssuedCard | undefined> {
@@ -115,6 +147,27 @@ export class IssuedCardRepository {
         this.cards.set(card.objectId, card);
       }
     }
+  }
+
+  private async loadCustomerObjectIdNumbers(): Promise<void> {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(await fs.readFile(this.customerObjectIdNumbersPath, "utf8")) as unknown;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
+      throw error;
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("קובץ customer-object-id-numbers.json אינו תקין.");
+    }
+    const values = new Map<string, string>();
+    for (const [customerId, value] of Object.entries(parsed)) {
+      if (!/^[A-Za-z0-9_-]+$/.test(customerId) || typeof value !== "string" || !/^\d{1,20}$/.test(value)) {
+        throw new Error("נמצאה הגדרת מספר objectId לא תקינה.");
+      }
+      values.set(customerId, value);
+    }
+    this.customerObjectIdNumbers = values;
   }
 
   private isCurrentIndex(value: unknown): value is IssuedCardsIndex {
@@ -181,6 +234,13 @@ export class IssuedCardRepository {
       }
 
       await fs.mkdir(this.customerDataDirectory, { recursive: true });
+      const expectedFiles = new Set([...groups.keys()].map((customerId) => this.customerFileName(customerId)));
+      const existingFiles = await fs.readdir(this.customerDataDirectory);
+      for (const name of existingFiles) {
+        if (name.endsWith(".json") && !expectedFiles.has(name)) {
+          await this.writeAtomically(path.join(this.customerDataDirectory, name), "[]");
+        }
+      }
       for (const [customerId, cards] of groups) {
         const customerFile = path.join(this.customerDataDirectory, this.customerFileName(customerId));
         await this.writeAtomically(customerFile, JSON.stringify(cards, null, 2));

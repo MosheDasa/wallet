@@ -135,6 +135,20 @@ function App() {
     }
   };
 
+  const handleSaveCustomerObjectIdNumber = (customerId: string, objectIdNumber: string) => withAction(
+    async () => { await api.saveCustomerObjectIdNumber(customerId, objectIdNumber); },
+    "מספר ה־objectId נשמר ללקוח",
+  );
+
+  const handleDeleteAllCustomerCards = (customerId: string) => withAction(
+    async () => {
+      await api.deleteAllCustomerCards(customerId);
+      setSelectedObjectId(undefined);
+      setCardFields([]);
+    },
+    "רישומי הכרטיסים של הלקוח הוסרו מהמערכת",
+  );
+
   const handleMessage = (header: string, body: string) => withAction(
     async () => { if (selectedObjectId) await api.sendMessage(selectedObjectId, header, body); },
     "הודעת Wallet נשלחה",
@@ -255,6 +269,9 @@ function App() {
           />
           <WalletCardsPanel
             cards={cards}
+            customerId={selectedCustomerId}
+            onSaveCustomerObjectIdNumber={handleSaveCustomerObjectIdNumber}
+            onDeleteAllCustomerCards={handleDeleteAllCustomerCards}
             fields={cardFields}
             fieldsLoading={fieldsLoading}
             loading={customerLoading}

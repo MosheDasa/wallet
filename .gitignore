@@ -5,6 +5,8 @@ dist/
 server/data/issued-cards.json
 server/data/issued-cards.json.tmp
 server/data/issued-cards-data/
+server/data/customer-object-id-numbers.json
+server/data/customer-object-id-numbers.json.*.tmp
 *.log
 *.tsbuildinfo
 service-account*.json

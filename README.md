@@ -50,9 +50,12 @@
 | Method | Route | פעולה |
 |---|---|---|
 | GET | /api/health | מצב הגדרת Wallet API |
+| GET | /api/customers/:customerId/object-id-number | קריאת המספר המצורף למזהי כרטיסים חדשים של לקוח |
+| PUT | /api/customers/:customerId/object-id-number | שמירת המספר המצורף למזהי כרטיסים חדשים של לקוח |
 | GET | /api/customers | רשימת לקוחות |
 | GET | /api/customers/:customerId/policies | פוליסות של לקוח |
 | GET | /api/wallet/customers/:customerId/cards | כרטיסים שנרשמו במערכת |
+| DELETE | /api/wallet/customers/:customerId/cards | ניקוי כל רישומי הכרטיסים של הלקוח מהמאגר המקומי |
 | GET | /api/wallet/objects/:objectId/google | אובייקט הכרטיס כפי שהוא נשמר ב־Google Wallet |
 | POST | /api/wallet/issue | יצירת כרטיסים וקישור שמירה מקובץ |
 | POST | /api/wallet/objects/:objectId/messages | הודעת Wallet והתראת Android |

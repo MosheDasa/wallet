@@ -89,12 +89,36 @@ export function createApiRouter(repository: IssuedCardRepository, wallet: Wallet
     })));
   });
 
+  router.get("/customers/:customerId/object-id-number", (request, response) => {
+    const customer = CUSTOMERS.find((entry) => entry.id === request.params.customerId);
+    if (!customer) return response.status(404).json({ error: "הלקוח לא נמצא." });
+    return response.json({ objectIdNumber: repository.getCustomerObjectIdNumber(customer.id) ?? "" });
+  });
+
+  router.put("/customers/:customerId/object-id-number", asyncRoute(async (request, response) => {
+    const customer = CUSTOMERS.find((entry) => entry.id === request.params.customerId);
+    if (!customer) return response.status(404).json({ error: "הלקוח לא נמצא." });
+    const { objectIdNumber: rawValue } = request.body as { objectIdNumber?: unknown };
+    if (typeof rawValue !== "string" || (rawValue !== "" && !/^\d{1,20}$/.test(rawValue))) {
+      return response.status(400).json({ error: "המספר חייב להכיל 1–20 ספרות, או להיות ריק להסרתו." });
+    }
+    await repository.setCustomerObjectIdNumber(customer.id, rawValue);
+    return response.json({ ok: true, customerId: customer.id, objectIdNumber: rawValue });
+  }));
+
   router.get("/wallet/customers/:customerId/cards", (request, response) => {
     if (!CUSTOMERS.some((entry) => entry.id === request.params.customerId)) {
       return response.status(404).json({ error: "הלקוח לא נמצא." });
     }
     return response.json(repository.listForCustomer(request.params.customerId).filter((card) => card.provider === "google"));
   });
+
+  router.delete("/wallet/customers/:customerId/cards", asyncRoute(async (request, response) => {
+    const customer = CUSTOMERS.find((entry) => entry.id === request.params.customerId);
+    if (!customer) return response.status(404).json({ error: "הלקוח לא נמצא." });
+    const removedLocally = await repository.removeForCustomer(customer.id);
+    return response.json({ ok: true, customerId: customer.id, removedLocally });
+  }));
 
   router.post("/wallet/branding/apply", asyncRoute(async (_request, response) => {
     const cards = repository.listAll().filter((card) => card.provider === "google");
@@ -117,7 +141,11 @@ export function createApiRouter(repository: IssuedCardRepository, wallet: Wallet
       return response.status(400).json({ error: "יש לבחור פוליסות קיימות של הלקוח." });
     }
 
-    const result = await wallet.issueGroupedPasses(customer, selectedPolicies);
+    const result = await wallet.issueGroupedPasses(
+      customer,
+      selectedPolicies,
+      repository.getCustomerObjectIdNumber(customer.id),
+    );
     await repository.addMany(result.cards);
     return response.status(201).json({
       saveUrl: result.saveUrl,
